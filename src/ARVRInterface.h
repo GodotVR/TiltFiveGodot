@@ -1,19 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Our main ARVRInterface code for our OpenVR GDNative module
 
-#ifndef TILT_FILE_ARVR_INTERFACE_H
-#define TILT_FILE_ARVR_INTERFACE_H
+#pragma once
 #include <Godot.hpp>
 
+class TiltFiveManager;
 
 extern const godot_arvr_interface_gdnative interface_struct;
 
 typedef struct arvr_data_struct {
-	uint32_t width;
-	uint32_t height;
-
-	int video_driver;
-	int texture_id;
+	TiltFiveManager* manager;
 } arvr_data_struct;
-
-#endif /* !TILT_FILE_ARVR_INTERFACE_H */

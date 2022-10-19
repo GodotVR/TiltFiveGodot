@@ -6,6 +6,7 @@
 #include <OS.hpp>
 #include "ARVRInterface.h"
 #include "VisualServer.hpp"
+#include "TiltFiveManager.h"
 
 ////////////////////////////////////////////////////////////////
 // Returns the name of this interface
@@ -64,11 +65,7 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 		return false;
 	}
 
-	//if (arvr_data->ovr == NULL) {
-	//	return false;
-	//}
-
-	return true; //arvr_data->ovr->is_initialised();
+	return arvr_data->manager->IsInitialized();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -78,30 +75,14 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 // before initializing the interface.
 godot_bool godot_arvr_initialize(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-
-	// this should be static once Godot runs but obtain whether we're running GLES2, GLES3 or Vulkan
-	arvr_data->video_driver = godot::OS::get_singleton()->get_current_video_driver();
-/*
-	if (arvr_data->ovr->initialise()) {
-		// go and get our recommended target size
-		arvr_data->ovr->get_recommended_rendertarget_size(&arvr_data->width, &arvr_data->height);
-
-		// note, this will be made the primary interface by ARVRInterfaceGDNative
-	}
-*/
-	// and return our result
-	return true; //arvr_data->ovr->is_initialised();
+	return arvr_data->manager->Initialize(); 
 }
 
 ////////////////////////////////////////////////////////////////
 // Uninitialises our interface, shuts down our HMD
 void godot_arvr_uninitialize(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-
-	// note, this will already be removed as the primary interface by
-	// ARVRInterfaceGDNative
-
-	//arvr_data->ovr->cleanup();
+	arvr_data->manager->Uninitialize(); 
 }
 
 ////////////////////////////////////////////////////////////////
@@ -110,19 +91,12 @@ void godot_arvr_uninitialize(void *p_data) {
 // render target will be constructed.
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	godot_vector2 size;
-	/*
-	if (arvr_data->ovr->is_initialised()) {
-		// TODO: we should periodically check if the recommended size has changed (the user can adjust this) and if so update our width/height
-		// and reset our render texture (RID)
+	int height;
+	int width;
+	arvr_data->manager->GetRenderTargetSize(width, height);
 
-		godot::api->godot_vector2_new(&size, (real_t)arvr_data->width, (real_t)arvr_data->height);
-	} else {
-		godot::api->godot_vector2_new(&size, 500.0f, 500.0f);
-	}
-*/
-	godot::api->godot_vector2_new(&size, 1216.0f, 768.0f);
-	
+	godot_vector2 size;
+	godot::api->godot_vector2_new(&size, (godot_real)width, (godot_real)height);
 
 	return size;
 }
@@ -281,10 +255,10 @@ void godot_arvr_process(void *p_data) {
 
 	// this method gets called before every frame is rendered, here is where you
 	// should update tracking data, update controllers, etc.
-/* 	if (arvr_data->ovr->is_initialised()) {
+ 	if (arvr_data->manager->IsInitialized()) {
 		// Call process on our ovr system.
-		arvr_data->ovr->process();
-	} */
+		arvr_data->manager->Process();
+	} 
 }
 
 ////////////////////////////////////////////////////////////////
@@ -294,9 +268,7 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 	// note, don't do to much here, not much will have been initialised yet...
 
 	arvr_data_struct *arvr_data = (arvr_data_struct *)godot::api->godot_alloc(sizeof(arvr_data_struct));
-
-	//arvr_data->ovr = openvr_data::retain_singleton();
-	arvr_data->video_driver = 0;
+	arvr_data->manager = new TiltFiveManager();
 
 	return arvr_data;
 }
@@ -306,13 +278,8 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 void godot_arvr_destructor(void *p_data) {
 	if (p_data != NULL) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-/* 		if (arvr_data->ovr != NULL) {
-			// this should have already been called... But just in case...
-			godot_arvr_uninitialize(p_data);
-
-			arvr_data->ovr->release();
-			arvr_data->ovr = NULL;
-		} */
+		
+		delete arvr_data->manager;
 
 		godot::api->godot_free(p_data);
 	}

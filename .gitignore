@@ -29,6 +29,13 @@ config.log
 *.a
 *.lib
 
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+!TiltFiveNDK/lib/*/*
+
 # Executables
 *.exe
 *.out
@@ -40,3 +47,7 @@ config.log
 *.code-workspace
 *.ilk
 *.exp
+
+.vscode
+.compile_commands.json
+compile_commands.json

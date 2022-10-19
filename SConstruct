@@ -4,6 +4,9 @@ import scons_compiledb
 
 opts = Variables([], ARGUMENTS)
 
+
+VariantDir("build","src", duplicate=False)
+
 # Gets the standard flags CC, CCX, etc.
 env = DefaultEnvironment()
 
@@ -108,8 +111,10 @@ env.Append(LIBS=[cpp_library, tilt_five_library])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])
-sources = Glob('src/*.cpp')
-sources += Glob('src/*.c')
+sources = Glob('build/*.cpp')
+sources += Glob('build/*.c')
+
+print(sources)
 
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
 
