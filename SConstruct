@@ -114,7 +114,6 @@ env.Append(CPPPATH=['src/'])
 sources = Glob('build/*.cpp')
 sources += Glob('build/*.c')
 
-print(sources)
 
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
 

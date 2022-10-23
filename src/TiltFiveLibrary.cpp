@@ -9,7 +9,7 @@ extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_opt
     godot::Godot::gdnative_terminate(o);
 }
 
-void GDN_EXPORT godot_openvr_gdnative_singleton() {
+void GDN_EXPORT godot_gdnative_singleton() {
 	if (godot::arvr_api != NULL) {
 		godot::arvr_api->godot_arvr_register_interface(&interface_struct);
 	}

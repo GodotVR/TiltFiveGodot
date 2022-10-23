@@ -8,6 +8,40 @@
 #include "VisualServer.hpp"
 #include "TiltFiveManager.h"
 
+using godot::VisualServer;
+
+inline Transform AsCpp(godot_transform& tran) {
+	static_assert(sizeof(godot_transform) == sizeof(Transform));
+	return *reinterpret_cast<Transform*>(&tran);
+}
+
+inline godot_transform AsC(Transform& tran) {
+	static_assert(sizeof(godot_transform) == sizeof(Transform));
+	return *reinterpret_cast<godot_transform*>(&tran);
+}
+
+inline Vector2 AsCpp(godot_vector2& vec) {
+	static_assert(sizeof(godot_vector2) == sizeof(Vector2));
+	return *reinterpret_cast<Vector2*>(&vec);
+}
+
+inline godot_vector2 AsC(Vector2& vec) {
+	static_assert(sizeof(godot_vector2) == sizeof(Vector2));
+	return *reinterpret_cast<godot_vector2*>(&vec);
+}
+
+inline TiltFiveManager* GetT5Manager(const void *p_data) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+	
+	return arvr_data ? arvr_data->manager : nullptr;
+}
+
+inline GlassesPtr GetActiveT5Glasses(const void *p_data) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+	
+	return arvr_data ? (arvr_data->manager ? arvr_data->manager->activeGlasses : GlassesPtr()) : GlassesPtr();
+}
+
 ////////////////////////////////////////////////////////////////
 // Returns the name of this interface
 godot_string godot_arvr_get_name(const void *p_data) {
@@ -90,15 +124,13 @@ void godot_arvr_uninitialize(void *p_data) {
 // called right before rendering, if the size changes a new
 // render target will be constructed.
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
-	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	int height;
-	int width;
-	arvr_data->manager->GetRenderTargetSize(width, height);
+	auto t5Manager = GetT5Manager(p_data);
+	
+	Vector2 result(1216, 768);
+	if(t5Manager->activeGlasses)
+		result = t5Manager->activeGlasses->GetRenderTargetSize();
 
-	godot_vector2 size;
-	godot::api->godot_vector2_new(&size, (godot_real)width, (godot_real)height);
-
-	return size;
+	return AsC(result);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -106,60 +138,40 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
-	// todo - rewrite this to use Transform object
+	Transform eyeTransform;
+	Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
 
-	godot_transform transform_for_eye;
-	godot_transform reference_frame = godot::arvr_api->godot_arvr_get_reference_frame();
-	godot_transform ret;
-	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
+	Transform ret;
+	godot_real worldScale = godot::arvr_api->godot_arvr_get_worldscale();
 
-/* 	if (p_eye == 0) {
-		// we want a monoscopic transform.. shouldn't really apply here
-		godot::api->godot_transform_new_identity(&transform_for_eye);
-	} else if (arvr_data->ovr != NULL) {
-		//arvr_data->ovr->get_eye_to_head_transform(&transform_for_eye, p_eye, world_scale);
+ 	if (arvr_data->manager && arvr_data->manager->activeGlasses) {
+		eyeTransform = arvr_data->manager->activeGlasses->GetEyeToHeadTransform( (Glasses::Eye)p_eye, worldScale);
 	} else {
-		// really not needed, just being paranoid..
-		godot_vector3 offset;
-		godot::api->godot_transform_new_identity(&transform_for_eye);
-		if (p_eye == 1) {
-			godot::api->godot_vector3_new(&offset, -0.035f * world_scale, 0.0f, 0.0f);
-		} else {
-			godot::api->godot_vector3_new(&offset, 0.035f * world_scale, 0.0f, 0.0f);
-		};
-		godot::api->godot_transform_translated(&transform_for_eye, &offset);
+		eyeTransform.translate((p_eye == 1 ? -0.035f : 0.035f) * worldScale, 0.0f, 0.0f);
 	};
 
-	// Now construct our full transform, the order may be in reverse, have to test
-	// :)
-	ret = *p_cam_transform;
-	ret = godot::api->godot_transform_operator_multiply(&ret, &reference_frame);
-	//ret = godot::api->godot_transform_operator_multiply(&ret, arvr_data->ovr->get_hmd_transform());
-	ret = godot::api->godot_transform_operator_multiply(&ret, &transform_for_eye);
- */
-	return ret;
+	ret = eyeTransform * referenceFrame * AsCpp(*p_cam_transform);
+
+	return AsC(ret);
 }
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes projection
 // matrix
-void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
-	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-/*
-	if (arvr_data->ovr->is_initialised()) {
-		vr::HmdMatrix44_t matrix = arvr_data->ovr->hmd->GetProjectionMatrix(
-				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, p_z_near, p_z_far);
 
-		int k = 0;
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				p_projection[k++] = matrix.m[j][i];
-			}
-		}
-	} else {
-		// uhm, should do something here really..
+void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
+	auto glasses = GetActiveT5Glasses(p_data); 
+
+	CameraMatrix cm;
+
+	if(glasses) {
+		cm = glasses->GetProjectionForEye(p_eye == 1 ? Glasses::Left : Glasses::Right, p_aspect, p_z_near, p_z_far);
 	}
-	*/
+	else {
+		cm.set_perspective(48.0f, p_aspect, p_z_near, p_z_far);
+	}	
+
+	memcpy(p_projection, cm.matrix, sizeof(cm.matrix));
 }
 
 ////////////////////////////////////////////////////////////////
@@ -243,7 +255,8 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 			}
 		}
 	}
- */}
+ */
+}
 
 ////////////////////////////////////////////////////////////////
 // Process is called by the rendering thread right before we
@@ -289,6 +302,17 @@ void godot_arvr_destructor(void *p_data) {
 // Return a texture ID for the eye if we manage the final
 // output buffer.
 int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
+
+	auto glasses = GetActiveT5Glasses(p_data);
+
+	if(glasses && glasses->IsReadyToDisplay()) 
+	{
+		return VisualServer::get_singleton()
+			->texture_get_texid(
+				glasses->GetTextureForEye(p_eye == 1 ? Glasses::Left : Glasses::Right)
+			);
+	}
+
 	return 0;
 }
 
