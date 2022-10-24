@@ -28,6 +28,7 @@ cpp_library = "libgodot-cpp"
 tilt_five_headers_path = "TiltFiveNDK/include/include"
 tilt_five_library_path = "TiltFiveNDK/lib/win64"
 tilt_five_library = "TiltFiveNative.dll.if"
+demo_path = "demo/bin/"
 
 # only support 64 at this time..
 bits = 64
@@ -82,6 +83,8 @@ elif env['platform'] != 'windows':
 if env['platform'] == "windows":
     env['target_path'] += 'win64/'
     cpp_library += '.windows'
+    env['demo_path'] = demo_path + 'win64/'
+    lib_ext = '.dll'
     # This makes sure to keep the session environment variables on windows,
     # that way you can run scons in a vs 2017 prompt and it will find all the required tools
     env.Append(ENV=os.environ)
@@ -100,14 +103,14 @@ if env['platform'] == "windows":
 if env['target'] in ('debug', 'd'):
     cpp_library += '.debug'
 else:
-    cpp_library += '.release'
+    cpp_library += '.release' 
 
 cpp_library += '.' + str(bits)
 
 # make sure our binding library is properly includes
 env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', tilt_five_headers_path])
 env.Append(LIBPATH=[cpp_bindings_path + 'bin/', tilt_five_library_path])
-env.Append(LIBS=[cpp_library, tilt_five_library])
+env.Append(LIBS=[cpp_library, tilt_five_library, "Opengl32"])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])
@@ -116,6 +119,12 @@ sources += Glob('build/*.c')
 
 
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+
+env.AddPostAction(library, Mkdir(env['demo_path']))
+env.AddPostAction(library, Copy(
+        env['demo_path'] + env["target_name"] + lib_ext,
+        env['target_path'] + env["target_name"] + lib_ext
+    ))
 
 Default(library)
 

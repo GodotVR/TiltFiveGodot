@@ -8,8 +8,11 @@ float const defaultFOV = 48.0f;
 
 using godot::VisualServer;
 
+void HackMakeCurrent() ;
+
+
 Glasses::Glasses(const std::string& id) 
-: mId(id), frameResult(T5_SUCCESS)
+: mId(id), frameResult(-1)
 {
 
 }
@@ -104,6 +107,7 @@ bool Glasses::InitializeGraphics()
     mIsGraphicsInitialized = (result == T5_SUCCESS);
     if(!mIsGraphicsInitialized) 
     {
+        HackMakeCurrent();
         LogError("t5InitGlassesGraphicsContext", result);
         return false;
     }
@@ -112,10 +116,10 @@ bool Glasses::InitializeGraphics()
     auto texSize = GetRenderTargetSize();
 
     mLeftEyeTexture = vs->texture_create();
-    vs->texture_allocate(mLeftEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, 0);
+    vs->texture_allocate(mLeftEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, VisualServer::TextureFlags::TEXTURE_FLAG_USED_FOR_STREAMING);
 
     mRightEyeTexture = vs->texture_create();
-    vs->texture_allocate(mRightEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, 0);
+    vs->texture_allocate(mRightEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, VisualServer::TextureFlags::TEXTURE_FLAG_USED_FOR_STREAMING);
     
     return true;
 }
@@ -142,6 +146,8 @@ bool Glasses::QueryIPD()
     return true;
 }
 
+ChangeDetector<bool> poseChange(true);
+
 void Glasses::UpdatePose()
 {
     auto result = t5GetGlassesPose(mGlasses, &mT5Pose);
@@ -150,9 +156,13 @@ void Glasses::UpdatePose()
     if(mIsTracking)
     {
         godot::Quat orientation(mT5Pose.rotToGLS_GBD.x, mT5Pose.rotToGLS_GBD.y, mT5Pose.rotToGLS_GBD.z, mT5Pose.rotToGLS_GBD.w);
-
-        mHeadTransform.basis = godot::Basis(orientation);
+        
+        mHeadTransform.basis = godot::Basis(orientation.inverse());
         mHeadTransform.origin = godot::Vector3(mT5Pose.posGLS_GBD.x, mT5Pose.posGLS_GBD.y, mT5Pose.posGLS_GBD.z);
+    }
+    poseChange.SetValue(mIsTracking);
+    if(poseChange.IsChanged()) {
+        godot::Godot::print(mIsTracking ? "Tracking started" : "Tracking ended");
     }
 }
 
@@ -270,7 +280,7 @@ bool TiltFiveManager::Initialize()
     if(!activeGlasses)
         return false;
 
-    
+    isInitialized = true;
 
     return true;
 }
@@ -299,7 +309,7 @@ bool TiltFiveManager::GetServiceVersion()
         result == T5_ERROR_NO_SERVICE && retryCount > 0;
 	    result = t5GetSystemUtf8Param(mContext, kT5_ParamSys_UTF8_Service_Version, versionBuffer, &bufferSize))
     {
-        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         --retryCount;
     }
     if(result == T5_SUCCESS) {
@@ -324,7 +334,7 @@ bool TiltFiveManager::GetGlassesList()
         result == T5_ERROR_NO_SERVICE && retryCount > 0;
         result = t5ListGlasses(mContext, glassesListBuffer, &bufferSize))
     {
-        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         --retryCount;
     }
     if(result == T5_SUCCESS) 
@@ -366,7 +376,7 @@ bool TiltFiveManager::GetGlassesList()
 
 bool TiltFiveManager::IsInitialized()
 {
-    return true;
+    return isInitialized;
 }
 
 void TiltFiveManager::Process()

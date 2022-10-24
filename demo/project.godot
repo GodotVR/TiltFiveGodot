@@ -11,7 +11,12 @@ config_version=4
 [application]
 
 config/name="demo"
+run/main_scene="res://Root.tscn"
 config/icon="res://icon.png"
+
+[gdnative]
+
+singletons=[ "res://bin/TiltFiveGodot.tres" ]
 
 [gui]
 

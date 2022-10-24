@@ -108,13 +108,18 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 // Note that you should do any configuration using OpenVRConfig
 // before initializing the interface.
 godot_bool godot_arvr_initialize(void *p_data) {
+	godot::Godot::print("godot_arvr_initialize");
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	return arvr_data->manager->Initialize(); 
+	bool isInitialized = arvr_data->manager->Initialize(); 
+	if(!isInitialized)
+		arvr_data->manager->Uninitialize();
+	return isInitialized;
 }
 
 ////////////////////////////////////////////////////////////////
 // Uninitialises our interface, shuts down our HMD
 void godot_arvr_uninitialize(void *p_data) {
+	godot::Godot::print("godot_arvr_uninitialize");
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	arvr_data->manager->Uninitialize(); 
 }
@@ -124,11 +129,11 @@ void godot_arvr_uninitialize(void *p_data) {
 // called right before rendering, if the size changes a new
 // render target will be constructed.
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
-	auto t5Manager = GetT5Manager(p_data);
+	auto glasses = GetActiveT5Glasses(p_data); 
 	
 	Vector2 result(1216, 768);
-	if(t5Manager->activeGlasses)
-		result = t5Manager->activeGlasses->GetRenderTargetSize();
+	if(glasses)
+		result = glasses->GetRenderTargetSize();
 
 	return AsC(result);
 }
@@ -136,7 +141,7 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes view matrix
 godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
-	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+	auto glasses = GetActiveT5Glasses(p_data); 
 
 	Transform eyeTransform;
 	Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
@@ -144,8 +149,8 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 	Transform ret;
 	godot_real worldScale = godot::arvr_api->godot_arvr_get_worldscale();
 
- 	if (arvr_data->manager && arvr_data->manager->activeGlasses) {
-		eyeTransform = arvr_data->manager->activeGlasses->GetEyeToHeadTransform( (Glasses::Eye)p_eye, worldScale);
+ 	if (glasses) {
+		eyeTransform = glasses->GetEyeToHeadTransform( (Glasses::Eye)p_eye, worldScale) * glasses->GetHeadTransform();
 	} else {
 		eyeTransform.translate((p_eye == 1 ? -0.035f : 0.035f) * worldScale, 0.0f, 0.0f);
 	};
@@ -178,7 +183,7 @@ void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, 
 // This is called after we render a frame for each eye so we
 // can send the render output to OpenVR
 void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_render_target, godot_rect2 *p_screen_rect) {
-	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+	auto glasses = GetActiveT5Glasses(p_data); 
 
 	// This function is responsible for outputting the final render buffer for
 	// each eye.
@@ -190,7 +195,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 	// For an interface that outputs to an external device we should render a copy
 	// of one of the eyes to the main viewport if p_screen_rect is set, and only
 	// output to the external device if not.
-/* 
+
 	godot::Rect2 screen_rect = *(godot::Rect2 *)p_screen_rect;
 
 	if (p_eye == 1 && !screen_rect.has_no_area()) {
@@ -214,48 +219,10 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 		godot::arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
 	}
 
-	if (arvr_data->ovr->is_initialised()) {
-		vr::VRTextureBounds_t bounds;
-		bounds.uMin = 0.0;
-		bounds.uMax = 1.0;
-		bounds.vMin = 0.0;
-		bounds.vMax = 1.0;
-
-		uint32_t texid = godot::arvr_api->godot_arvr_get_texid(p_render_target);
-
-		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
-
-		if (arvr_data->ovr->get_application_type() == openvr_data::OpenVRApplicationType::OVERLAY) {
-			// Overlay mode
-			if (p_eye == 1) {
-				vr::EVROverlayError vrerr;
-
-				for (int i = 0; i < arvr_data->ovr->get_overlay_count(); i++) {
-					vr::TextureID_t texidov = (vr::TextureID_t)godot::VisualServer::get_singleton()->texture_get_texid(godot::VisualServer::get_singleton()->viewport_get_texture(arvr_data->ovr->get_overlay(i).viewport_rid));
-
-					if (texid == texidov) {
-						vrerr = vr::VROverlay()->SetOverlayTexture(arvr_data->ovr->get_overlay(i).handle, &eyeTexture);
-
-						if (vrerr != vr::VROverlayError_None) {
-							godot::Godot::print(godot::String("OpenVR could not set texture for overlay: ") + godot::String::num_int64(vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-						}
-
-						vrerr = vr::VROverlay()->SetOverlayTextureBounds(arvr_data->ovr->get_overlay(i).handle, &bounds);
-
-						if (vrerr != vr::VROverlayError_None) {
-							godot::Godot::print(godot::String("OpenVR could not set textute bounds for overlay: ") + godot::String::num_int64(vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-						}
-					}
-				}
-			}
-		} else {
-			vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
-			if (vrerr != vr::VRCompositorError_None) {
-				printf("OpenVR reports: %i\n", vrerr);
-			}
-		}
+	if (glasses && p_eye == 2) {
+		glasses->SendFrame();
 	}
- */
+ 
 }
 
 ////////////////////////////////////////////////////////////////
@@ -278,7 +245,7 @@ void godot_arvr_process(void *p_data) {
 // Construct our interface so it can be registered
 // we do not initialise anything here!
 void *godot_arvr_constructor(godot_object *p_instance) {
-	// note, don't do to much here, not much will have been initialised yet...
+	godot::Godot::print("godot_arvr_constructor");
 
 	arvr_data_struct *arvr_data = (arvr_data_struct *)godot::api->godot_alloc(sizeof(arvr_data_struct));
 	arvr_data->manager = new TiltFiveManager();
@@ -289,6 +256,7 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 ////////////////////////////////////////////////////////////////
 // Clean up our interface
 void godot_arvr_destructor(void *p_data) {
+	godot::Godot::print("godot_arvr_destructor");
 	if (p_data != NULL) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 		

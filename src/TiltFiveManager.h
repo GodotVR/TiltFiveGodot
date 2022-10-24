@@ -83,6 +83,7 @@ class TiltFiveManager
     T5_Context mContext = nullptr;
     std::string mNDKVersion;
     std::vector<GlassesPtr> mGlassesList;
+    bool isInitialized = false;
 
     bool GetServiceVersion();
     bool GetGlassesList();

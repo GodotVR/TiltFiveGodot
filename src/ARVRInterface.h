@@ -10,4 +10,4 @@ extern const godot_arvr_interface_gdnative interface_struct;
 
 typedef struct arvr_data_struct {
 	TiltFiveManager* manager;
-} arvr_data_struct;
+} arvr_data_struct;  
