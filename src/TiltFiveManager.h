@@ -43,8 +43,6 @@ class Glasses
     Ref<ImageTexture> mLeftEyeTexture;
     Ref<ImageTexture> mRightEyeTexture;
 
-    //RID mLeftEyeTexture;
-    //RID mRightEyeTexture;
 
     ChangeDetector<T5_Result> frameResult;
 
@@ -64,6 +62,8 @@ class Glasses
     const Transform& GetHeadTransform() { return mHeadTransform; }
     const Transform GetEyeToHeadTransform(Eye eye, float worldScale);
     
+    const Transform GetOriginToEyeTransform(Eye eye, float worldScale);
+
     bool Create(T5_Context context);
     void Destroy();
     bool Acquire();

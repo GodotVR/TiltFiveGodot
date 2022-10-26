@@ -19,49 +19,55 @@ margin_bottom = 768.0
 arvr = true
 size = Vector2( 1216, 768 )
 msaa = 2
+keep_3d_linear = true
 render_target_update_mode = 3
 
 [node name="Spatial" type="Spatial" parent="Viewport"]
 
 [node name="ARVROrigin" type="ARVROrigin" parent="Viewport/Spatial"]
+world_scale = 2.0
 script = ExtResource( 1 )
 
 [node name="ARVRCamera" type="ARVRCamera" parent="Viewport/Spatial/ARVROrigin"]
+fov = 48.0
 
 [node name="MeshInstance" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 
 [node name="MeshInstance7" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -1.66291, 0, 0 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, -0.176271, 0.00206804, -0.000618696 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
+material/0 = ExtResource( 2 )
 
 [node name="MeshInstance6" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 1.44637, 0, 0 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0.18746, 0.00174111, -0.00381809 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
+material/0 = ExtResource( 2 )
 
 [node name="MeshInstance4" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, -1.24342, 0 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, -0.169972, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
-material/0 = ExtResource( 5 )
+material/0 = ExtResource( 3 )
 
 [node name="MeshInstance5" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 1.34373, 0 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0.173236, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 3 )
 
 [node name="MeshInstance2" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, -1.99068 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, -0.209735 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
-material/0 = ExtResource( 2 )
+material/0 = ExtResource( 5 )
 
 [node name="MeshInstance3" type="MeshInstance" parent="Viewport/Spatial"]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 1.19927 )
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0.190056 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
+material/0 = ExtResource( 5 )

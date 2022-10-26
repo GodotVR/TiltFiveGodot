@@ -140,22 +140,21 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes view matrix
-godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
+godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *originTransform) {
 	auto glasses = GetActiveT5Glasses(p_data); 
 
-	Transform eyeTransform;
 	Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
 
-	Transform ret;
 	godot_real worldScale = godot::arvr_api->godot_arvr_get_worldscale();
 
+	Transform eyeTransform;
  	if (glasses) {
-		eyeTransform = glasses->GetEyeToHeadTransform( (Glasses::Eye)p_eye, worldScale) * glasses->GetHeadTransform();
+		eyeTransform = glasses->GetOriginToEyeTransform( p_eye == 1 ? Glasses::Left : Glasses::Right, worldScale);
 	} else {
 		eyeTransform.translate((p_eye == 1 ? -0.035f : 0.035f) * worldScale, 0.0f, 0.0f);
 	};
 
-	ret = eyeTransform * referenceFrame * AsCpp(*p_cam_transform);
+	Transform ret = eyeTransform * referenceFrame * AsCpp(*originTransform);
 
 	return AsC(ret);
 }
