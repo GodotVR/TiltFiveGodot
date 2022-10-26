@@ -1,12 +1,15 @@
 #include "TiltFiveManager.h"     
 #include <thread>   
 #include <VisualServer.hpp>   
+#include <Defs.hpp>
 
 #define GLASSES_BUFFER_SIZE    1024
 
 float const defaultFOV = 48.0f;
 
 using godot::VisualServer;
+using godot::Image;
+using godot::Ref;
 
 void HackMakeCurrent() ;
 
@@ -70,11 +73,8 @@ void Glasses::Release()
 
     auto vs = VisualServer::get_singleton();
 
-    if(mLeftEyeTexture.is_valid())
-        vs->free_rid(mLeftEyeTexture);
-
-    if(mRightEyeTexture.is_valid())
-        vs->free_rid(mRightEyeTexture);
+    mLeftEyeTexture->free();
+    mRightEyeTexture->free();
 }
 
 
@@ -114,13 +114,38 @@ bool Glasses::InitializeGraphics()
 
     auto vs = VisualServer::get_singleton();
     auto texSize = GetRenderTargetSize();
+    int width = (int)texSize.width;
+    int height = (int)texSize.height;
 
-    mLeftEyeTexture = vs->texture_create();
-    vs->texture_allocate(mLeftEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, VisualServer::TextureFlags::TEXTURE_FLAG_USED_FOR_STREAMING);
+    Ref<Image> image = Image::_new();
+    godot::Color bg(0,0,0,1);
+    image->create(width, height, false, godot::Image::FORMAT_RGBA8);
+    image->lock();
+    for(int y = 0; y < height; ++y) 
+    {
+        for(int x = 0; x < width; ++x) 
+        {
+            image->set_pixel(x,y,bg);
+        }
+    }
+    image->unlock();
 
-    mRightEyeTexture = vs->texture_create();
-    vs->texture_allocate(mRightEyeTexture, (int)texSize.x, (int)texSize.y, 0, godot::Image::FORMAT_RGBA8, VisualServer::TextureType::TEXTURE_TYPE_2D, VisualServer::TextureFlags::TEXTURE_FLAG_USED_FOR_STREAMING);
-    
+    mLeftEyeTexture = Ref<ImageTexture>(ImageTexture::_new());
+    mLeftEyeTexture->create_from_image(image, Texture::FLAG_MIRRORED_REPEAT);
+
+    mRightEyeTexture = Ref<ImageTexture>(ImageTexture::_new());
+    mRightEyeTexture->create_from_image(image, Texture::FLAG_MIRRORED_REPEAT);
+
+    static bool once = true;
+    if(once) 
+    {
+        auto ltid = VisualServer::get_singleton()->texture_get_texid(mLeftEyeTexture->get_rid());
+        auto rtid = VisualServer::get_singleton()->texture_get_texid(mRightEyeTexture->get_rid());
+
+        godot::Godot::print(String("Create L/R texture = ") + String::num_int64(ltid) + " " + String::num_int64(rtid));
+        once = false;
+    }
+
     return true;
 }
 
@@ -128,9 +153,9 @@ bool Glasses::InitializeGraphics()
 RID Glasses::GetTextureForEye(Eye eye) 
 {
     if(eye == Left) 
-        return mLeftEyeTexture;
+        return mLeftEyeTexture->get_rid();
     if(eye == Right)
-        return mRightEyeTexture;
+        return mRightEyeTexture->get_rid();
     return RID();
 }
 
@@ -159,6 +184,8 @@ void Glasses::UpdatePose()
         
         mHeadTransform.basis = godot::Basis(orientation.inverse());
         mHeadTransform.origin = godot::Vector3(mT5Pose.posGLS_GBD.x, mT5Pose.posGLS_GBD.y, mT5Pose.posGLS_GBD.z);
+
+        mHeadTransform.rotate(Vector3::RIGHT, -Math_PI / 2.0f);
     }
     poseChange.SetValue(mIsTracking);
     if(poseChange.IsChanged()) {
@@ -202,14 +229,25 @@ void Glasses::SendFrame()
 		frameInfo.texWidth_PIX = (int)size.x;
 		frameInfo.texHeight_PIX = (int)size.y;
 
-		frameInfo.leftTexHandle = (void *)VisualServer::get_singleton()->texture_get_texid(mLeftEyeTexture);
-		frameInfo.rightTexHandle = (void *)VisualServer::get_singleton()->texture_get_texid(mRightEyeTexture);  
+        static bool once = true;
+        if(once) 
+        {
+            auto ltid = VisualServer::get_singleton()->texture_get_texid(mLeftEyeTexture->get_rid());
+            auto rtid = VisualServer::get_singleton()->texture_get_texid(mRightEyeTexture->get_rid());
+
+            godot::Godot::print(String("Send L/R texture = ") + String::num_int64(ltid) + " " + String::num_int64(rtid));
+            once = false;
+        }
+
+
+		frameInfo.leftTexHandle = (void *)VisualServer::get_singleton()->texture_get_texid(mLeftEyeTexture->get_rid());
+		frameInfo.rightTexHandle = (void *)VisualServer::get_singleton()->texture_get_texid(mRightEyeTexture->get_rid());  
 
         godot::Quat orientation(mT5Pose.rotToGLS_GBD.x, mT5Pose.rotToGLS_GBD.y, mT5Pose.rotToGLS_GBD.z, mT5Pose.rotToGLS_GBD.w);
 
-        auto leftPos = orientation * Vector3((real_t)mIpd/2.0f,0,0);
-        auto rightPos = orientation * Vector3((real_t)mIpd/2.0f,0,0);
-
+        auto leftPos =  orientation.xform(Vector3((real_t)-mIpd/2.0f,0,0)) + Vector3(mT5Pose.posGLS_GBD.x, mT5Pose.posGLS_GBD.y, mT5Pose.posGLS_GBD.z);
+        auto rightPos = orientation.xform(Vector3((real_t)mIpd/2.0f,0,0)) + Vector3(mT5Pose.posGLS_GBD.x, mT5Pose.posGLS_GBD.y, mT5Pose.posGLS_GBD.z);
+        
 		frameInfo.posLVC_GBD = { leftPos.x, leftPos.y, leftPos.z };
 		frameInfo.rotToLVC_GBD = mT5Pose.rotToGLS_GBD;
 

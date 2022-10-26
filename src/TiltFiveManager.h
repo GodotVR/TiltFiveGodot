@@ -3,6 +3,8 @@
 #include <RID.hpp>
 #include <Texture.hpp>
 #include <CameraMatrix.hpp>
+#include <ImageTexture.hpp>   
+#include <Ref.hpp>   
 #include <TiltFiveNative.h>
 #include <string>
 #include <vector>
@@ -38,8 +40,11 @@ class Glasses
     Transform mHeadTransform;
     double mIpd = 0.059f;
 
-    RID mLeftEyeTexture;
-    RID mRightEyeTexture;
+    Ref<ImageTexture> mLeftEyeTexture;
+    Ref<ImageTexture> mRightEyeTexture;
+
+    //RID mLeftEyeTexture;
+    //RID mRightEyeTexture;
 
     ChangeDetector<T5_Result> frameResult;
 

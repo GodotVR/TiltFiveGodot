@@ -1,4 +1,4 @@
-extends Spatial
+extends ARVROrigin
 
 
 
@@ -6,8 +6,9 @@ extends Spatial
 func _ready():
 	print("Root _ready")
 	var arvr_interface = ARVRServer.find_interface("TiltFive")
-	print(arvr_interface)
 	if arvr_interface and arvr_interface.initialize():
-		get_viewport().arvr = true
-
+		var vp = get_viewport()
+		vp.arvr = true
+		vp.keep_3d_linear = true
+		OS.vsync_enabled = false
 
