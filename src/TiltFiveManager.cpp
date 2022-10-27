@@ -205,18 +205,6 @@ const Transform Glasses::GetOriginToEyeTransform(Eye eye, float worldScale)
     return eyeTransform * mHeadTransform.scaled(Vector3(worldScale, worldScale, worldScale));
 }
 
-
-const Transform Glasses::GetEyeToHeadTransform(Eye eye, float worldScale) 
-{
-    Transform eyeTransform;
-
-    float dir = (eye == Glasses::Left ? -1.0f : 1.0f);
-    eyeTransform.translate((real_t)(dir * mIpd/2.0 * worldScale),0,0);
-
-    return eyeTransform;
-}
-
-
 CameraMatrix Glasses::GetProjectionForEye(Eye _, float aspect, float zNear, float zFar) 
 {
     CameraMatrix result;

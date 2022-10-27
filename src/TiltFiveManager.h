@@ -59,8 +59,6 @@ class Glasses
 
     bool IsTracking() { return mIsTracking; }
 
-    const Transform& GetHeadTransform() { return mHeadTransform; }
-    const Transform GetEyeToHeadTransform(Eye eye, float worldScale);
     
     const Transform GetOriginToEyeTransform(Eye eye, float worldScale);
 

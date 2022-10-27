@@ -143,7 +143,6 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *originTransform) {
 	auto glasses = GetActiveT5Glasses(p_data); 
 
-	Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
 
 	godot_real worldScale = godot::arvr_api->godot_arvr_get_worldscale();
 
@@ -151,10 +150,12 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
  	if (glasses) {
 		eyeTransform = glasses->GetOriginToEyeTransform( p_eye == 1 ? Glasses::Left : Glasses::Right, worldScale);
 	} else {
+		Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
 		eyeTransform.translate((p_eye == 1 ? -0.035f : 0.035f) * worldScale, 0.0f, 0.0f);
+		eyeTransform = eyeTransform * referenceFrame;
 	};
 
-	Transform ret = eyeTransform * referenceFrame * AsCpp(*originTransform);
+	Transform ret = eyeTransform * AsCpp(*originTransform);
 
 	return AsC(ret);
 }
@@ -196,25 +197,6 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 	// output to the external device if not.
 
 
-	static int oncel = 3;
-	if(oncel > 0 && p_eye == 1) 
-	{
-		uint32_t texid = godot::arvr_api->godot_arvr_get_texid(p_render_target);
-
-		godot::Godot::print(String("Send left eye texture = " + String::num_int64(texid)));
-		--oncel;
-	}
-
-	static int oncer = 3;
-	if(oncer > 0 && p_eye == 2) 
-	{
-		uint32_t texid = godot::arvr_api->godot_arvr_get_texid(p_render_target);
-
-		godot::Godot::print(String("Send right eye texture = " + String::num_int64(texid)));
-		--oncer;
-	}
-
-
 	godot::Rect2 screen_rect = *(godot::Rect2 *)p_screen_rect;
 
 	if (p_eye == 1 && !screen_rect.has_no_area()) {
@@ -232,8 +214,6 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 			screen_rect.position.x = (0.5f * screen_rect.size.x) - (0.5f * new_width);
 			screen_rect.size.x = new_width;
 		}
-
-		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
 
 		//godot::arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
 	}
