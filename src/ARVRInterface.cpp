@@ -6,7 +6,7 @@
 #include <OS.hpp>
 #include "ARVRInterface.h"
 #include "VisualServer.hpp"
-#include "TiltFiveManager.h"
+#include "TiltFiveService.h"
 
 using godot::VisualServer;
 
@@ -30,16 +30,16 @@ inline godot_vector2 AsC(Vector2& vec) {
 	return *reinterpret_cast<godot_vector2*>(&vec);
 }
 
-inline TiltFiveManager* GetT5Manager(const void *p_data) {
+inline TiltFiveService* GetT5Service(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	
-	return arvr_data ? arvr_data->manager : nullptr;
+	return arvr_data ? arvr_data->service : nullptr;
 }
 
 inline GlassesPtr GetActiveT5Glasses(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	
-	return arvr_data ? (arvr_data->manager ? arvr_data->manager->activeGlasses : GlassesPtr()) : GlassesPtr();
+	return arvr_data ? (arvr_data->service ? arvr_data->service->activeGlasses : GlassesPtr()) : GlassesPtr();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 		return false;
 	}
 
-	return arvr_data->manager->IsInitialized();
+	return arvr_data->service->IsInitialized();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -110,9 +110,9 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 godot_bool godot_arvr_initialize(void *p_data) {
 	godot::Godot::print("godot_arvr_initialize");
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	bool isInitialized = arvr_data->manager->Initialize(); 
+	bool isInitialized = arvr_data->service->Initialize(); 
 	if(!isInitialized)
-		arvr_data->manager->Uninitialize();
+		arvr_data->service->Uninitialize();
 	return isInitialized;
 }
 
@@ -121,7 +121,7 @@ godot_bool godot_arvr_initialize(void *p_data) {
 void godot_arvr_uninitialize(void *p_data) {
 	godot::Godot::print("godot_arvr_uninitialize");
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	arvr_data->manager->Uninitialize(); 
+	arvr_data->service->Uninitialize(); 
 }
 
 ////////////////////////////////////////////////////////////////
@@ -234,9 +234,9 @@ void godot_arvr_process(void *p_data) {
 
 	// this method gets called before every frame is rendered, here is where you
 	// should update tracking data, update controllers, etc.
- 	if (arvr_data->manager->IsInitialized()) {
+ 	if (arvr_data->service->IsInitialized()) {
 		// Call process on our ovr system.
-		arvr_data->manager->Process();
+		arvr_data->service->Process();
 	} 
 }
 
@@ -247,7 +247,7 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 	godot::Godot::print("godot_arvr_constructor");
 
 	arvr_data_struct *arvr_data = (arvr_data_struct *)godot::api->godot_alloc(sizeof(arvr_data_struct));
-	arvr_data->manager = new TiltFiveManager();
+	arvr_data->service = new TiltFiveService();
 
 	return arvr_data;
 }
@@ -259,7 +259,7 @@ void godot_arvr_destructor(void *p_data) {
 	if (p_data != NULL) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 		
-		delete arvr_data->manager;
+		delete arvr_data->service;
 
 		godot::api->godot_free(p_data);
 	}

@@ -4,10 +4,10 @@
 #pragma once
 #include <Godot.hpp>
 
-class TiltFiveManager;
+class TiltFiveService;
 
 extern const godot_arvr_interface_gdnative interface_struct;
 
 typedef struct arvr_data_struct {
-	TiltFiveManager* manager;
+	TiltFiveService* service;
 } arvr_data_struct;  
