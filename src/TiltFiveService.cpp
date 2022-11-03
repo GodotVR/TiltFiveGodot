@@ -237,7 +237,7 @@ bool Glasses::initialize_graphics()
     bool is_graphics_initialized = (result == T5_SUCCESS);
     if(!is_graphics_initialized) 
     {
-    
+        // This is to get around a T5 initialization bug that should be fixed in the next version
         HackMakeCurrent();
         T5_ERR_PRINT(result);
         return false;
