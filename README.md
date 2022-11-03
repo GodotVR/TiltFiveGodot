@@ -30,3 +30,7 @@ There is a demo project. There will be better docs here as the extension matures
 - Move connection management to a background thread
 - Better docs and examples
 
+## Acknowledgments
+
+This was written by referring a lot to [GodotVR](https://github.com/GodotVR) code and reading 
+[Godot's](https://github.com/godotengine/godot) source code. 

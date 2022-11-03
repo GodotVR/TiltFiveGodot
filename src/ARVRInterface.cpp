@@ -1,5 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // ARVRInterface code for Tilt Five GDNative module
+//
+// Based on code written by Bastiaan "Mux213" Olij,
+
 #include <OS.hpp>
 #include "ARVRInterface.h"
 #include "VisualServer.hpp"
