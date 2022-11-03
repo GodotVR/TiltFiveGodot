@@ -6,10 +6,13 @@ glasses and handle connection events.
 
 This extension is in it's early days and is probably buggy and subject to changes in interface.
 
-## Build
+## Platforms
 
 Currently only Windows 10/11 is supported because that is the only platform supported by Tilt Five. T5 linux support
 is supposed to come at some point in the future and support for that platform will revisted when it becomes available. 
+
+## Build
+
 This project uses the same [SCons](https://scons.org/) build system used by Godot project. It might be useful to refer 
 to Godot's own [documentation](https://docs.godotengine.org/en/stable/tutorials/scripting/gdnative/index.html) 
 about building extensions.
