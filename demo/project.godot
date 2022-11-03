@@ -14,6 +14,10 @@ config/name="demo"
 run/main_scene="res://Root.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+TiltFiveManager="*res://bin/tilt_five_manager.gdns"
+
 [gdnative]
 
 singletons=[ "res://bin/TiltFiveGodot.tres" ]
