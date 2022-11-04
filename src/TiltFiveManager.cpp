@@ -15,7 +15,7 @@ void TiltFiveManager::_init()
 
 bool TiltFiveManager::start_service(const GD::String application_id, const GD::String application_version)
 {
-    TRACE_FN
+    
 
     if(!_service) return false;
 

@@ -6,8 +6,6 @@
 #include <VisualServer.hpp>   
 #include <Defs.hpp>
 
-#define GLASSES_BUFFER_SIZE    1024
-
 float const defaultFOV = 48.0f;
 
 using godot::VisualServer;
@@ -20,8 +18,6 @@ void HackMakeCurrent() ;
 Glasses::Glasses(const std::string& id) 
 : _id(id)
 {
-    godot::Godot::print("Current state = " + godot::String::num(_state.get_current()));
-
     _state.set_current(S_UNAVAILABLE);
 
     _poll_connection.set_rate(_poll_rate_for_connecting);
@@ -127,7 +123,7 @@ void Glasses::monitor_connection()
 
 void Glasses::connect(std::string application_name) 
 {
-    TRACE_FN
+    
     _application_name = application_name;
     if(_glasses_handle)
     {
@@ -138,7 +134,7 @@ void Glasses::connect(std::string application_name)
 
 void Glasses::disconnect() 
 {
-    TRACE_FN
+    
     if(_state.is_current(S_READY)) 
     {
         auto result = t5ReleaseGlasses(_glasses_handle);
@@ -229,7 +225,7 @@ Vector2 Glasses::get_render_target_size()
 
 bool Glasses::initialize_graphics() 
 {
-    TRACE_FN
+    
     if(!_state.is_requested(S_GRAPHICS_INIT))
         return true;
 
@@ -273,7 +269,6 @@ bool Glasses::initialize_graphics()
         auto ltid = VisualServer::get_singleton()->texture_get_texid(_left_eye_texture->get_rid());
         auto rtid = VisualServer::get_singleton()->texture_get_texid(_right_eye_texture->get_rid());
 
-        godot::Godot::print(String("Create L/R texture = ") + String::num_int64(ltid) + " " + String::num_int64(rtid));
         once = false;
     }
 
@@ -487,21 +482,21 @@ std::shared_ptr<TiltFiveService> TiltFiveService::get_service()
 
 TiltFiveService::TiltFiveService() 
 {
-    TRACE_FN
+    
     _poll_glasses.set_rate(_poll_rate_for_monitoring);
     _poll_glasses.set_action( [this]() { query_glasses_list(); } );
 }
 
 TiltFiveService::~TiltFiveService() 
 {
-    TRACE_FN
+    
     stop_service();
 }
 
 
 bool TiltFiveService::start_service(const char* application_id, const char* application_version) 
 {
-    TRACE_FN
+    
     if(_is_started) return true;
 
     T5_ClientInfo clientInfo;
@@ -512,7 +507,6 @@ bool TiltFiveService::start_service(const char* application_id, const char* appl
 
     if(result != T5_SUCCESS)
     {
-        CHECK_POINT_FN
         T5_ERR_PRINT(result);
         return false;
     }
@@ -689,15 +683,13 @@ void TiltFiveService::disconnect_glasses(int glasses_num)
 
 bool TiltFiveService::begin_display()
 {
-    TRACE_FN
     _is_displaying = _is_started && _active_glasses;
-    LOG_NUM(_is_displaying)
     return _is_displaying;
 }
 
 void TiltFiveService::end_display()
 {
-    TRACE_FN
+    
     _is_displaying = false;
     _active_glasses->disconnect();
 

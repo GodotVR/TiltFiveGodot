@@ -115,7 +115,7 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 // is that when the viewport.arvr get set to true
 // godot_arvr_commit_for_eye is ready to go
 godot_bool godot_arvr_initialize(void *p_data) {
-	TRACE_FN
+	
 	auto t5_service = GetT5Service(p_data);	
 	if (!t5_service) return false;
 
@@ -126,7 +126,7 @@ godot_bool godot_arvr_initialize(void *p_data) {
 // Once again really doesn't do anything see above
 void godot_arvr_uninitialize(void *p_data) 
 {
-	TRACE_FN
+	
 	auto t5_service = GetT5Service(p_data);	
 	if (!t5_service) return;
 
@@ -237,7 +237,7 @@ void godot_arvr_process(void *p_data) {
 // Construct our interface so it can be registered
 // we do not initialise anything here!
 void *godot_arvr_constructor(godot_object *p_instance) {
-	TRACE_FN
+	
 
 	arvr_data_struct *arvr_data = new(godot::api->godot_alloc(sizeof(arvr_data_struct))) arvr_data_struct();
 	if(arvr_data) 
@@ -254,8 +254,9 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 // Clean up our interface. 
 // This seems to getting called more than once. It's a little
 // disturbing
-void godot_arvr_destructor(void *p_data) {
-	TRACE_FN
+void godot_arvr_destructor(void *p_data) 
+{
+	
 	if (p_data != NULL) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 		if(!arvr_data->is_initialized)
