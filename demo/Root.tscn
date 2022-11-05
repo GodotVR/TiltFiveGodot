@@ -30,6 +30,8 @@ world_scale = 2.0
 [node name="ARVRCamera" type="ARVRCamera" parent="Viewport/Spatial/ARVROrigin"]
 fov = 48.0
 
+[node name="ARVRController" type="ARVRController" parent="Viewport/Spatial/ARVROrigin"]
+
 [node name="MeshInstance" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0 )
 mesh = SubResource( 1 )

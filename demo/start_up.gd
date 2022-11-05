@@ -23,7 +23,6 @@ func on_window_size_change():
 func _ready():
 	$TextureRect.texture = $Viewport.get_texture()
 	
-	
 	get_tree().get_root().connect("size_changed", self, "on_window_size_change")
 	on_window_size_change();
 	

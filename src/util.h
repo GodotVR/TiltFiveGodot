@@ -6,78 +6,93 @@
 #include "Logging.h"
 
 template<typename T>
-class StateFlags 
+class StateFlags
 {
-    static_assert(std::is_integral_v<T>, "class StateFlags T must be a integral type");
+	static_assert(std::is_integral_v<T>, "class StateFlags T must be a integral type");
 
-    T _requested = 0;
-    T _current = 0;
-    T _changed = 0;
+	public:
 
-    public:
+	T _requested = 0;
+	T _current = 0;
+	T _previous = 0;
 
+	T get_current()
+	{
+		return _current;
+	}
 
-    T get_current() 
+	void set_requested(T state)
+	{
+		_current &= ~state;
+		_requested |= state;
+	}
+
+	void set_current(T state)
+	{
+		_requested &= ~state;
+		_current |= state;
+	}
+
+	void clear(T state)
+	{
+		_requested &= ~state;
+		_current &= ~state;
+	}
+
+	void clear_all(bool clear_changes = true)
+	{
+		_current = 0;
+		_requested = 0;
+		if(clear_changes) 
+			_previous = 0;
+	}
+
+    void clear_requested(T state) 
     {
-        return _current;
-    }
-
-    void set_requested(T state) {
-        _changed |= (_current & state);
-        _current &= ~state;
-        _requested |= state;
-    }
-
-    void set_current(T state) {
-        _changed |= state & (_current ^ state);
         _requested &= ~state;
-        _current |= state;
     }
 
-    void clear(T state) {
-        _changed |= (_current & state);
-        _requested &= ~state;
-        _current &= ~state;
-    }
-
-    void clear_all(bool clear_changes = true) {
-        _changed = clear_changes ? 0 : _current;
-        _current = 0;
+    void clear_all_requested() 
+    {
         _requested = 0;
     }
 
-    void reset(T state) {
-        _changed = (_current & state);
-        _requested = 0;
-        _current = state;
-    }
+	void reset(T state, bool clear_changes = false)
+	{
+		_requested = 0;
+		_current = state;
+		if(clear_changes) 
+		    _previous = state;
+	}
 
-    bool is_requested(T state) {
-        return (_requested & state) == state;
-    }
+	bool is_requested(T state) const
+	{
+		return (_requested & state) == state;
+	}
 
-    bool is_current(T state) {
-        return (_current & state) == state;
-    }
+	bool is_current(T state) const
+	{
+		return (_current & state) == state;
+	}
 
-    bool any_changed(T state) {
-        return (_changed & state) != 0;
-    }
+	bool any_changed(T state) const
+	{
+		return ((_current ^ _previous) & state) != 0;
+	}
 
+	T get_changes() const
+	{
+		return (_current ^ _previous);
+	}
 
-    T get_changes() 
-    {
-        return _changed;
-    }
-
-    T get_changes_and_reset() 
-    {
-        auto ret = _changed;
-        _changed = 0;
-        return ret;
-    }
-
+	T get_changes_and_reset()
+	{
+		auto ret = get_changes();
+		_previous = _current;
+		return ret;
+	}
 };
+
 
 class RepeatingActionTimer 
 {

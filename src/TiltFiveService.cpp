@@ -18,7 +18,7 @@ void HackMakeCurrent() ;
 Glasses::Glasses(const std::string& id) 
 : _id(id)
 {
-    _state.set_current(S_UNAVAILABLE);
+    _state.reset(S_UNAVAILABLE, true);
 
     _poll_connection.set_rate(_poll_rate_for_connecting);
     _poll_connection.set_action( [this](){ monitor_connection(); });
@@ -86,7 +86,6 @@ void Glasses::monitor_connection()
             }    
             // On success fall through to connected
             case kT5_ConnectionState_ExclusiveConnection: {
-                _poll_connection.set_rate(_poll_rate_for_monitoring);
                 _state.set_current(S_READY);
                 _state.set_requested(S_GRAPHICS_INIT);
                 break;
@@ -111,10 +110,12 @@ void Glasses::monitor_connection()
         if(_state.is_current(S_READY | S_GRAPHICS_INIT)) 
         {
             _state.set_current(S_CONNECTED);
+            _poll_connection.set_rate(_poll_rate_for_monitoring);
         }
         else 
         {
             _state.clear(S_CONNECTED);
+            _poll_connection.set_rate(_poll_rate_for_connecting);
         }
     }
 }
@@ -166,7 +167,8 @@ bool Glasses::reserve()
         {
             // Some else has the glasses so stop 
             // trying to connect
-            _state.reset(S_UNAVAILABLE);
+            _state.clear_requested(S_READY);
+            _state.set_current(S_UNAVAILABLE);
         }
         else if(result == T5_ERROR_DEVICE_LOST) 
         {
@@ -230,7 +232,8 @@ bool Glasses::initialize_graphics()
         return true;
 
     auto result = t5InitGlassesGraphicsContext(_glasses_handle, kT5_GraphicsApi_Gl, nullptr);
-    bool is_graphics_initialized = (result == T5_SUCCESS);
+    // T5_ERROR_INVALID_STATE seems to mean perviously initialized
+    bool is_graphics_initialized = (result == T5_SUCCESS || result == T5_ERROR_INVALID_STATE);
     if(!is_graphics_initialized) 
     {
         // This is to get around a T5 initialization bug that should be fixed in the next version
@@ -293,13 +296,16 @@ void Glasses::query_ipd()
     if(!_state.is_requested(S_IPD_SET)) return;
 
     auto result = t5GetGlassesFloatParam(_glasses_handle, 0, kT5_ParamGlasses_Float_IPD, &mIpd);
-    if(result != T5_SUCCESS) 
-    {
-        T5_ERR_PRINT(result);
-    }
-    else
+    if(result == T5_SUCCESS) 
     {
         _state.set_current(S_IPD_SET);
+    }
+    else if(result == T5_ERROR_NO_SERVICE)
+        return;
+    else
+    {
+        _state.clear_requested(S_IPD_SET);
+        T5_ERR_PRINT(result);
     }
     return;
 }
@@ -324,6 +330,7 @@ void Glasses::query_friendly_name()
             continue;
         } 
 
+        _state.clear_requested(S_NAME_SET);
         T5_ERR_PRINT(result);
         _last_error = result;
         return;
@@ -332,10 +339,10 @@ void Glasses::query_friendly_name()
     _state.set_current(S_NAME_SET);
 }
 
-
-
 void Glasses::update_pose()
 {
+    if(!_state.is_current(S_CONNECTED)) 
+        return;
     auto result = t5GetGlassesPose(_glasses_handle, &_last_T5_pose);
 
     bool isTracking = (result == T5_SUCCESS);
@@ -354,7 +361,15 @@ void Glasses::update_pose()
     {
         _state.clear(S_TRACKING);
 
-        if(result != T5_ERROR_TRY_AGAIN) 
+        if(result == T5_ERROR_TRY_AGAIN)
+            return;
+        else if(result == T5_ERROR_NOT_CONNECTED) 
+        {
+            _state.clear(S_CONNECTED);
+            _state.set_requested(S_READY);
+            T5_ERR_PRINT(result);
+        }
+        else
         {
             _last_error = result;
             T5_ERR_PRINT(result);
@@ -433,6 +448,7 @@ void Glasses::send_frame()
         _last_error = result;
         if(result == T5_ERROR_NOT_CONNECTED)
 		{ 
+            _state.clear(S_CONNECTED);
             _state.set_requested(S_READY);
 		}
         // not sure how we might get here
