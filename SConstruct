@@ -5,7 +5,8 @@ import scons_compiledb
 opts = Variables([], ARGUMENTS)
 
 
-VariantDir("build","src", duplicate=False)
+VariantDir("build/src","src", duplicate=False)
+VariantDir("build/T5Integration","T5Integration", duplicate=False)
 
 # Gets the standard flags CC, CCX, etc.
 env = DefaultEnvironment()
@@ -29,6 +30,7 @@ cpp_library = "libgodot-cpp"
 
 tilt_five_headers_path = "TiltFiveNDK/include/include"
 tilt_five_library_path = "TiltFiveNDK/lib/win64"
+t5_integration_path = "T5Integration"
 tilt_five_library = "TiltFiveNative.dll.if"
 demo_path = "demo/bin/"
 
@@ -93,7 +95,7 @@ if env['platform'] == "windows":
 
     env.Append(CPPDEFINES=['WIN32', '_WIN32', '_WINDOWS', '_CRT_SECURE_NO_WARNINGS'])
     env.Append(CCFLAGS=['-W3', '-GR'])
-    env.Append(CXXFLAGS='/std:c++17')
+    env.Append(CXXFLAGS=['/std:c++20', '/Zc:__cplusplus'])
     if env['target'] in ('debug', 'd'):
         env.Append(CPPDEFINES=['_DEBUG'])
         env.Append(CCFLAGS=['-EHsc', '-MDd', '-ZI'])
@@ -115,9 +117,9 @@ env.Append(LIBPATH=[cpp_bindings_path + 'bin/', tilt_five_library_path])
 env.Append(LIBS=[cpp_library, tilt_five_library, "Opengl32"])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['src/'])
-sources = Glob('build/*.cpp')
-sources += Glob('build/*.c')
+env.Append(CPPPATH=['src/', t5_integration_path])
+sources = Glob('build/src/*.cpp')
+sources += Glob('build/T5Integration/*.cpp')
 
 
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)

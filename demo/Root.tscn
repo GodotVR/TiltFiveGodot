@@ -1,9 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=9 format=2]
 
+[ext_resource path="res://Materials/pointer.tres" type="Material" id=1]
 [ext_resource path="res://Materials/red.tres" type="Material" id=2]
 [ext_resource path="res://Materials/green.tres" type="Material" id=3]
 [ext_resource path="res://start_up.gd" type="Script" id=4]
 [ext_resource path="res://Materials/blue.tres" type="Material" id=5]
+[ext_resource path="res://pointer_controller.gd" type="Script" id=6]
+
+[sub_resource type="PrismMesh" id=2]
 
 [sub_resource type="CubeMesh" id=1]
 
@@ -31,43 +35,49 @@ world_scale = 2.0
 fov = 48.0
 
 [node name="ARVRController" type="ARVRController" parent="Viewport/Spatial/ARVROrigin"]
+script = ExtResource( 6 )
 
-[node name="MeshInstance" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Pointer" type="MeshInstance" parent="Viewport/Spatial/ARVROrigin/ARVRController"]
+transform = Transform( 0.02, 0, 0, 0, 0.02, 0, 0, 0, 0.02, 0, 0, 0 )
+mesh = SubResource( 2 )
+material/0 = ExtResource( 1 )
+
+[node name="Center Box" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 
-[node name="MeshInstance7" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Neg X Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, -0.176271, 0.00206804, -0.000618696 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 2 )
 
-[node name="MeshInstance6" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Pos X Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0.18746, 0.00174111, -0.00381809 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 2 )
 
-[node name="MeshInstance4" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Neg Y Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, -0.169972, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 3 )
 
-[node name="MeshInstance5" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Pos Y Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0.173236, 0 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 3 )
 
-[node name="MeshInstance2" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Neg Z Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, -0.209735 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")
 material/0 = ExtResource( 5 )
 
-[node name="MeshInstance3" type="MeshInstance" parent="Viewport/Spatial"]
+[node name="Pos Z Axis" type="MeshInstance" parent="Viewport/Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0.190056 )
 mesh = SubResource( 1 )
 skeleton = NodePath("../../..")

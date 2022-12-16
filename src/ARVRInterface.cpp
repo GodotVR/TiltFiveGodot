@@ -3,54 +3,37 @@
 //
 // Based on code written by Bastiaan "Mux213" Olij,
 
-#include <OS.hpp>
 #include "ARVRInterface.h"
-#include "VisualServer.hpp"
-#include "TiltFiveService.h"
-#include "Logging.h"
+#include <Godot.hpp>
+#include <OS.hpp>
+#include <Transform.hpp>
+#include <VisualServer.hpp>
+#include <CameraMatrix.hpp>
+#include "GodotT5Service.h"
+#include "GodotStructCasts.h"
 
 using godot::VisualServer;
+using godot::Transform;
+using godot::Vector2;
+using godot::Vector3;
+
+using GodotT5Integration::GodotT5Service;
+using T5Integration::ObjectRegistry;
+using GodotT5Integration::GodotT5ObjectRegistry;
+using Eye = GodotT5Integration::Glasses::Eye;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Some functions to go back and forth between the Godot C and CPP types
-inline Transform AsCpp(godot_transform& tran) {
-	static_assert(sizeof(godot_transform) == sizeof(Transform));
-	return *reinterpret_cast<Transform*>(&tran);
-}
-
-inline godot_transform AsC(Transform& tran) {
-	static_assert(sizeof(godot_transform) == sizeof(Transform));
-	return *reinterpret_cast<godot_transform*>(&tran);
-}
-
-inline Vector2 AsCpp(godot_vector2& vec) {
-	static_assert(sizeof(godot_vector2) == sizeof(Vector2));
-	return *reinterpret_cast<Vector2*>(&vec);
-}
-
-inline godot_vector2 AsC(Vector2& vec) {
-	static_assert(sizeof(godot_vector2) == sizeof(Vector2));
-	return *reinterpret_cast<godot_vector2*>(&vec);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Helpers for getting our data from the void* the interface calls give us
-inline const std::shared_ptr<TiltFiveService> GetT5Service(const void *p_data)
+// Helpers for getting our data from the void* the service calls give us
+inline const std::shared_ptr<GodotT5Service> get_t5_interface(const void *p_data)
 {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	
-	return arvr_data ? arvr_data->service : std::shared_ptr<TiltFiveService>();
-}
-
-inline GlassesPtr GetActiveT5Glasses(const void *p_data) {
-	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-	
-	return arvr_data ? (arvr_data->service ? arvr_data->service->get_active_glasses() : GlassesPtr()) : GlassesPtr();
+	return arvr_data ? arvr_data->service : std::shared_ptr<GodotT5Service>();
 }
 
 ////////////////////////////////////////////////////////////////
-// Returns the name of this interface
+// Returns the name of this service
 godot_string godot_arvr_get_name(const void *p_data) {
 	godot_string ret;
 
@@ -62,7 +45,7 @@ godot_string godot_arvr_get_name(const void *p_data) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Returns capabilities for this interface
+// Returns capabilities for this service
 godot_int godot_arvr_get_capabilities(const void *p_data) {
 	godot_int ret;
 
@@ -84,7 +67,7 @@ godot_bool godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 ////////////////////////////////////////////////////////////////
 // This is an AR feature not used here
 void godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable) {
-	// we ignore this, not supported in this interface!
+	// we ignore this, not supported in this service!
 }
 
 ////////////////////////////////////////////////////////////////
@@ -98,12 +81,12 @@ godot_bool godot_arvr_is_stereo(const void *p_data) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Returns whether our interface was successfully initialised
+// Returns whether our service was successfully initialised
 godot_bool godot_arvr_is_initialized(const void *p_data) {
-	auto t5_service = GetT5Service(p_data);
-	if (!t5_service) return false;
+	auto t5_interface = get_t5_interface(p_data);
+	if (!t5_interface) return false;
 	
-	return t5_service->is_displaying();
+	return t5_interface->is_connected();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -116,98 +99,75 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 // godot_arvr_commit_for_eye is ready to go
 godot_bool godot_arvr_initialize(void *p_data) {
 	
-	auto t5_service = GetT5Service(p_data);	
-	if (!t5_service) return false;
-
-	return t5_service->begin_display();
+	auto t5_interface = get_t5_interface(p_data);	
+	if (!t5_interface) return false;
+	return t5_interface->is_connected();
 }
 
 ////////////////////////////////////////////////////////////////
 // Once again really doesn't do anything see above
 void godot_arvr_uninitialize(void *p_data) 
 {
-	
-	auto t5_service = GetT5Service(p_data);	
-	if (!t5_service) return;
-
-	return t5_service->end_display();
 }
 
 ////////////////////////////////////////////////////////////////
 // Returns the requested size of our render target
 // called right before rendering, if the size changes a new
 // render target will be constructed.
-godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
-	auto glasses = GetActiveT5Glasses(p_data); 
+godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {	
+	auto t5_interface = get_t5_interface(p_data);	
 	
-	Vector2 result(1216, 768);
-	if(glasses)
-		result = glasses->get_render_target_size();
+	Vector2 result = t5_interface->get_display_size();
 
-	return AsC(result);
+	return as_c_struct(result);
 }
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes view matrix
-godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *originTransform) {
-	auto glasses = GetActiveT5Glasses(p_data); 
+godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *originTransform) {	
+	auto t5_interface = get_t5_interface(p_data);	
 
+	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
 
-	godot_real worldScale = godot::arvr_api->godot_arvr_get_worldscale();
+	Transform eye_transform = t5_interface->get_eye_transform(p_eye == 1 ? Eye::Left : Eye::Right);
+	eye_transform.scale(Vector3(world_scale, world_scale, world_scale));
 
-	Transform eyeTransform;
- 	if (glasses) {
-		eyeTransform = glasses->get_origin_to_eye_transform( p_eye == 1 ? Glasses::Left : Glasses::Right, worldScale);
-	} else {
-		Transform referenceFrame = AsCpp(godot::arvr_api->godot_arvr_get_reference_frame());
-		eyeTransform.translate((p_eye == 1 ? -0.035f : 0.035f) * worldScale, 0.0f, 0.0f);
-		eyeTransform = eyeTransform * referenceFrame;
-	};
+	Transform ret = eye_transform * as_cpp_class(*originTransform);
 
-	Transform ret = eyeTransform * AsCpp(*originTransform);
-
-	return AsC(ret);
+	return as_c_struct(ret);
 }
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes projection
 // matrix
-void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
-	auto glasses = GetActiveT5Glasses(p_data); 
+void godot_arvr_fill_projection_for_eye(void *data, godot_real *projection, godot_int eye, godot_real aspect, godot_real z_near, godot_real z_far) {
+	auto t5_interface = get_t5_interface(data);	
 
-	CameraMatrix cm;
-
-	if(glasses) {
-		cm = glasses->get_projection_for_eye(p_eye == 1 ? Glasses::Left : Glasses::Right, p_aspect, p_z_near, p_z_far);
-	}
-	else {
-		cm.set_perspective(48.0f, p_aspect, p_z_near, p_z_far);
-	}	
-
-	memcpy(p_projection, cm.matrix, sizeof(cm.matrix));
+    CameraMatrix cm;
+    cm.set_perspective(t5_interface->get_fov(), aspect, z_near, z_far);
+	memcpy(projection, cm.matrix, sizeof(cm.matrix));
 }
 
 ////////////////////////////////////////////////////////////////
 // This is called after we render a frame for each eye so we
 // can send output. 
-void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_render_target, godot_rect2 *p_screen_rect) {
-	auto glasses = GetActiveT5Glasses(p_data); 
+void godot_arvr_commit_for_eye(void *data, godot_int eye, godot_rid *render_target, godot_rect2 *rect) {
+	auto t5_interface = get_t5_interface(data);	
 
-	godot::Rect2 screen_rect = *(godot::Rect2 *)p_screen_rect;
+	godot::Rect2 screen_rect = *reinterpret_cast<godot::Rect2*>(rect);
 
 	// This is code for mirroring the output. I've disabled the blitting.  I'm not sure it is 
 	// needed in this situation.
-	if (p_eye == 1 && !screen_rect.has_no_area()) {
+	if (eye == 1 && !screen_rect.has_no_area()) {
 		// blit as mono, attempt to keep our aspect ratio and center our render buffer
-		godot_vector2 rs = godot_arvr_get_render_targetsize(p_data);
-		godot::Vector2 *render_size = (godot::Vector2 *)&rs;
+		auto render_size = as_cpp_class(godot_arvr_get_render_targetsize(data));
 
-		float new_height = screen_rect.size.x * (render_size->y / render_size->x);
+		float new_height = screen_rect.size.x * (render_size.y / render_size.x);
 		if (new_height > screen_rect.size.y) {
 			screen_rect.position.y = (0.5f * screen_rect.size.y) - (0.5f * new_height);
 			screen_rect.size.y = new_height;
 		} else {
-			float new_width = screen_rect.size.y * (render_size->x / render_size->y);
+			float new_width = screen_rect.size.y * (render_size.x / render_size.y);
 
 			screen_rect.position.x = (0.5f * screen_rect.size.x) - (0.5f * new_width);
 			screen_rect.size.x = new_width;
@@ -218,8 +178,8 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 	// Tilt Five requires both left and right eye
 	// data at once so the underlying functions just waits until 
 	// both are finished to send.
-	if (glasses && p_eye == 2) {
-		glasses->send_frame();
+	if (t5_interface && eye == 2) {
+		t5_interface->send_frame();
 	}
  
 }
@@ -227,60 +187,52 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 ////////////////////////////////////////////////////////////////
 // Process is called by the rendering thread right before we
 // render our next frame. Here we obtain our new poses.
-void godot_arvr_process(void *p_data) {
-	auto t5_service = GetT5Service(p_data);	
+void godot_arvr_process(void *data) {
+	auto t5_interface = get_t5_interface(data);	
 
-	t5_service->update_tracking();
+	t5_interface->update_tracking();
 }
 
+
+static bool g_is_interface_initialized = false;
 ////////////////////////////////////////////////////////////////
-// Construct our interface so it can be registered
+// Construct our service so it can be registered
 // we do not initialise anything here!
 void *godot_arvr_constructor(godot_object *p_instance) {
-	
-
 	arvr_data_struct *arvr_data = new(godot::api->godot_alloc(sizeof(arvr_data_struct))) arvr_data_struct();
 	if(arvr_data) 
 	{
-		arvr_data->service = TiltFiveService::get_service();
+		arvr_data->service = GodotT5ObjectRegistry::service();
 		if(arvr_data->service)
-			arvr_data->is_initialized = true;
+			g_is_interface_initialized = true;
 	}
 
 	return arvr_data;
 }
 
 ////////////////////////////////////////////////////////////////
-// Clean up our interface. 
+// Clean up our service. 
 // This seems to getting called more than once. It's a little
 // disturbing
 void godot_arvr_destructor(void *p_data) 
 {
-	
-	if (p_data != NULL) {
+	if (p_data != NULL && g_is_interface_initialized) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-		if(!arvr_data->is_initialized)
-			return;
-		
-		arvr_data->is_initialized = false;
 		arvr_data->~arvr_data_struct();
 		godot::api->godot_free(p_data);
+		g_is_interface_initialized = false;
 	}
 }
 
 ////////////////////////////////////////////////////////////////
 // Return a texture ID for the eye if we manage the final
 // output buffer.
-int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
+int godot_arvr_get_external_texture_for_eye(void *data, int eye) {
+	auto t5_interface = get_t5_interface(data);	
 
-	auto glasses = GetActiveT5Glasses(p_data);
-
-	if(glasses && glasses->is_active()) 
+	if(t5_interface && t5_interface->is_connected()) 
 	{
-		return VisualServer::get_singleton()
-			->texture_get_texid(
-				glasses->get_texture_for_eye(p_eye == 1 ? Glasses::Left : Glasses::Right)
-			);
+		return t5_interface->get_eye_texture(eye == 1 ? Eye::Left : Eye::Right);
 	}
 
 	return 0;
@@ -305,7 +257,7 @@ int godot_arvr_get_external_depth_for_eye(void *p_data, int p_eye) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Structure to provide pointers to our interface functions.
+// Structure to provide pointers to our service functions.
 const godot_arvr_interface_gdnative interface_struct = {
 	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
 	godot_arvr_constructor,

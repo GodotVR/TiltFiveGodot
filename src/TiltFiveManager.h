@@ -1,15 +1,19 @@
 #include <Godot.hpp>
 #include <Node.hpp>
 #include <memory>
-#include "TiltFiveService.h"
+#include "GodotT5Service.h"
 
-namespace GD = godot;
+using godot::String;
+using godot::Node;
 
-class TiltFiveManager : public GD::Node 
+using GodotT5Integration::GodotT5ObjectRegistry;
+using GodotT5Integration::GodotT5Service;
+
+class TiltFiveManager : public Node 
 {
-    GODOT_CLASS(TiltFiveManager, GD::Node)
+    GODOT_CLASS(TiltFiveManager, Node)
 
-    std::shared_ptr<TiltFiveService> _service;
+    std::shared_ptr<GodotT5Service> _t5_interface;
 
     std::vector<uint32_t> _changed_state;
 
@@ -17,8 +21,8 @@ class TiltFiveManager : public GD::Node
 
 
 public:
-    GD::String application_id;
-    GD::String application_version;
+    String application_id;
+    String application_version;
 
 
     TiltFiveManager();
@@ -27,9 +31,9 @@ public:
     void _init(); // our initializer called by Godot
     void _process(float delta);
 
-    bool start_service(const GD::String application_id, const GD::String application_version);
+    bool start_service(const String application_id, const String application_version);
 
-    void connect_glasses(int glasses_num, const GD::String display_name);
+    void connect_glasses(int glasses_num, const String display_name);
     void disconnect_glasses(int glasses_num);
 
     static void _register_methods();

@@ -782,7 +782,7 @@ public:
     }
 
     /// \brief Block until a connection is established
-    auto awaitConnection() -> Result<void> {
+    auto  () -> Result<void> {
         auto connectionState = mGlasses->getConnectionState();
         if (!connectionState) {
             return connectionState.error();
