@@ -28,9 +28,6 @@ There is a demo project. There will be better docs here as the extension matures
 
 ## TODO
 
-- Wand tracking
-- Wand input
-- Move connection management to a background thread
 - Better docs and examples
 
 ## Acknowledgments
