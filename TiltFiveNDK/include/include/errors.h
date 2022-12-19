@@ -137,6 +137,9 @@ typedef uint32_t T5_Result;
 /// Permission denied
 #define T5_PERMISSION_DENIED (0x101B)
 
+/// Invalid Buffer Size
+#define T5_ERROR_INVALID_BUFFER_SIZE (0x101C)
+
 /// Maximum C error code
 #define T5_MAX_ERROR (0x8000)
 
