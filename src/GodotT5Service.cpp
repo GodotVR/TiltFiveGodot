@@ -111,10 +111,15 @@ Transform GodotT5Service::get_wand_transform(size_t wand_num) {
 	_active_glasses->get_wand_position(wand_num, position.x, position.y, position.z);
 	_active_glasses->get_wand_orientation(wand_num, orientation.x, orientation.y, orientation.z, orientation.w);
 
+    position = Vector3(position.x, position.z, -position.y);
+    orientation = Quat(orientation.x, orientation.z, -orientation.y, orientation.w);
+    orientation = orientation.inverse();
+
 	Transform wandPose;
     wandPose.set_origin(position);
-	wandPose.set_basis(orientation.inverse());
-    wandPose.rotate(Vector3::RIGHT, -Math_PI / 2.0f);
+	wandPose.set_basis(orientation * Quat(Vector3::RIGHT, Math_PI / 2.0f));
+	//wandPose.set_basis(orientation);
+    //wandPose.rotate(Vector3::RIGHT, -Math_PI / 2.0f);
 
 	return wandPose;
 }
