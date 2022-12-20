@@ -49,7 +49,6 @@ void T5Service::stop_service() {
 
 	for(Glasses::Ptr glasses : _glasses_list) {
 		glasses->disconnect();
-		LOG_CHECK_POINT
 		glasses_were_disconnected(glasses);
 		glasses->destroy_handle();
 	}
