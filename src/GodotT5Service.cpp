@@ -118,8 +118,6 @@ Transform GodotT5Service::get_wand_transform(size_t wand_num) {
 	Transform wandPose;
     wandPose.set_origin(position);
 	wandPose.set_basis(orientation * Quat(Vector3::RIGHT, Math_PI / 2.0f));
-	//wandPose.set_basis(orientation);
-    //wandPose.rotate(Vector3::RIGHT, -Math_PI / 2.0f);
 
 	return wandPose;
 }

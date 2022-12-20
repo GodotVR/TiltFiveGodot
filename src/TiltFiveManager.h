@@ -13,7 +13,7 @@ class TiltFiveManager : public Node
 {
     GODOT_CLASS(TiltFiveManager, Node)
 
-    std::shared_ptr<GodotT5Service> _t5_interface;
+    std::shared_ptr<GodotT5Service> _t5_service;
 
     std::vector<uint32_t> _changed_state;
 
