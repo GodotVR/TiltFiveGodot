@@ -49,6 +49,8 @@ void T5Service::stop_service() {
 
 	for(Glasses::Ptr glasses : _glasses_list) {
 		glasses->disconnect();
+		LOG_CHECK_POINT
+		glasses_were_disconnected(glasses);
 		glasses->destroy_handle();
 	}
 	_glasses_list.clear();
@@ -74,7 +76,7 @@ const std::vector<GlassesEvent> T5Service::get_events() {
 		if((changes & GlassesState::CONNECTED) == GlassesState::CONNECTED) {
 			if(current_state & GlassesState::CONNECTED) {
 				glasses_were_connected(_glasses_list[i]);
-				_events.push_back(GlassesEvent(i, GlassesEvent::E_CONNECTED));
+				_events.push_back(GlassesEvent(i, GlassesEvent::E_CONNECTED)); 
 			}
 			else {
 				glasses_were_disconnected(_glasses_list[i]);

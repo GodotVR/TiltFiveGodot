@@ -8,30 +8,32 @@ TiltFiveManager::TiltFiveManager() {
 }
 
 TiltFiveManager::~TiltFiveManager() {
+    if(_t5_service)
+        _t5_service->stop_service();
 }
 
 void TiltFiveManager::_init() 
 {
-    _t5_interface = GodotT5ObjectRegistry::service();
+    _t5_service = GodotT5ObjectRegistry::service();
 }
 
 bool TiltFiveManager::start_service(const String application_id, const String application_version)
 {
-    if(!_t5_interface) return false;
+    if(!_t5_service) return false;
 
     this->application_id = application_id;
     this->application_version = application_version;
 
-    return _t5_interface->start_service(application_id.ascii().get_data(), application_version.ascii().get_data());
+    return _t5_service->start_service(application_id.ascii().get_data(), application_version.ascii().get_data());
 }
 
 void TiltFiveManager::_process(float delta) 
 {
-    if(!_t5_interface) return;
+    if(!_t5_service) return;
 
-    _t5_interface->update_connection();
+    _t5_service->update_connection();
 
-    auto& events = _t5_interface->get_events();
+    auto& events = _t5_service->get_events();
     for(int i = 0; i < events.size(); i++) 
     {
         emit_signal("glasses_event", events[i].glasses_num, (int)events[i].event);
@@ -41,16 +43,16 @@ void TiltFiveManager::_process(float delta)
 
 void TiltFiveManager::connect_glasses(int glasses_num, const String display_name) 
 {
-    if(!_t5_interface) return;
+    if(!_t5_service) return;
 
-    _t5_interface->connect_glasses(glasses_num, display_name.ascii().get_data());
+    _t5_service->connect_glasses(glasses_num, display_name.ascii().get_data());
 }
 
 void TiltFiveManager::disconnect_glasses(int glasses_num)
 {
-    if(!_t5_interface) return;
+    if(!_t5_service) return;
 
-    _t5_interface->disconnect_glasses(glasses_num);
+    _t5_service->disconnect_glasses(glasses_num);
 }
 
 void TiltFiveManager::_register_methods() {

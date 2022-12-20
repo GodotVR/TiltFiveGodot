@@ -324,7 +324,7 @@ namespace T5Integration {
 		}
 
 		wand_service.stop();
-		_state.clear(GlassesState::TRACKING_WANDS);
+		_state.clear(GlassesState::TRACKING_WANDS); 
 		auto err = wand_service.get_last_error();
 		if (err != T5_SUCCESS) {
 			LOG_T5_ERROR(wand_service.get_last_error());

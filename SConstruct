@@ -129,6 +129,10 @@ env.AddPostAction(library, Copy(
         env['demo_path'] + env["target_name"] + lib_ext,
         env['target_path'] + env["target_name"] + lib_ext
     ))
+env.AddPostAction(library, Copy(
+        env['demo_path'] + 'TiltFiveNative' + lib_ext,
+        'TiltFiveNDK/lib/win64/TiltFiveNative' + lib_ext
+    ))
 
 Default(library)
 
