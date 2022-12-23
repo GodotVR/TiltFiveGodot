@@ -47,7 +47,8 @@ class Glasses
 
     ~Glasses();
 
-    const std::string& get_id();
+    const std::string get_id();    
+    const std::string get_name();
     bool is_tracking();
     bool is_connected();
     
@@ -129,9 +130,13 @@ private:
 
 };
 
-inline const std::string& Glasses::get_id()
+inline const std::string Glasses::get_id()
 { 
     return _id; 
+}
+   
+inline const std::string Glasses::get_name() {
+    return _friendly_name;
 }
 
 inline bool Glasses::is_tracking() 

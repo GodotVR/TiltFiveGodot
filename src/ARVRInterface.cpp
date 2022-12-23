@@ -22,10 +22,12 @@ using T5Integration::ObjectRegistry;
 using GodotT5Integration::GodotT5ObjectRegistry;
 using Eye = GodotT5Integration::Glasses::Eye;
 
+Vector2 g_zero_vector2;
+Transform g_ident_transform;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Helpers for getting our data from the void* the service calls give us
-inline const std::shared_ptr<GodotT5Service> get_t5_interface(const void *p_data)
+inline const std::shared_ptr<GodotT5Service> get_t5_service(const void *p_data)
 {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	
@@ -83,10 +85,10 @@ godot_bool godot_arvr_is_stereo(const void *p_data) {
 ////////////////////////////////////////////////////////////////
 // Returns whether our service was successfully initialised
 godot_bool godot_arvr_is_initialized(const void *p_data) {
-	auto t5_interface = get_t5_interface(p_data);
-	if (!t5_interface) return false;
+	auto t5_service = get_t5_service(p_data);
+	if (!t5_service) return false;
 	
-	return t5_interface->is_connected();
+	return t5_service->is_connected();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -99,9 +101,9 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 // godot_arvr_commit_for_eye is ready to go
 godot_bool godot_arvr_initialize(void *p_data) {
 	
-	auto t5_interface = get_t5_interface(p_data);	
-	if (!t5_interface) return false;
-	return t5_interface->is_connected();
+	auto t5_service = get_t5_service(p_data);	
+	if (!t5_service) return false;
+	return t5_service->is_service_started();
 }
 
 ////////////////////////////////////////////////////////////////
@@ -115,9 +117,13 @@ void godot_arvr_uninitialize(void *p_data)
 // called right before rendering, if the size changes a new
 // render target will be constructed.
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {	
-	auto t5_interface = get_t5_interface(p_data);	
+	auto t5_service = get_t5_service(p_data);	
+	if(!t5_service->is_connected()) {
+		LOG_ERROR_ONCE("Not connected")
+		return as_c_struct(g_zero_vector2);
+	}
 	
-	Vector2 result = t5_interface->get_display_size();
+	Vector2 result = t5_service->get_display_size();
 
 	return as_c_struct(result);
 }
@@ -125,11 +131,15 @@ godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes view matrix
 godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *originTransform) {	
-	auto t5_interface = get_t5_interface(p_data);	
+	auto t5_service = get_t5_service(p_data);
+	if(!t5_service->is_connected()) {
+		LOG_ERROR_ONCE("Not connected")
+		return as_c_struct(g_ident_transform);
+	}	
 
 	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
 
-	Transform eye_transform = t5_interface->get_eye_transform(p_eye == 1 ? Eye::Left : Eye::Right);
+	Transform eye_transform = t5_service->get_eye_transform(p_eye == 1 ? Eye::Left : Eye::Right);
 	eye_transform.scale(Vector3(world_scale, world_scale, world_scale));
 
 	Transform ret = eye_transform * as_cpp_class(*originTransform);
@@ -141,10 +151,15 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 // This is called while rendering to get each eyes projection
 // matrix
 void godot_arvr_fill_projection_for_eye(void *data, godot_real *projection, godot_int eye, godot_real aspect, godot_real z_near, godot_real z_far) {
-	auto t5_interface = get_t5_interface(data);	
+	auto t5_service = get_t5_service(data);	
+	if(!t5_service->is_connected()) {
+		LOG_CHECK_POINT_ONCE
+		LOG_ERROR_ONCE("Not connected")
+		return;
+	}	
 
     CameraMatrix cm;
-    cm.set_perspective(t5_interface->get_fov(), aspect, z_near, z_far);
+    cm.set_perspective(t5_service->get_fov(), aspect, z_near, z_far);
 	memcpy(projection, cm.matrix, sizeof(cm.matrix));
 }
 
@@ -152,7 +167,11 @@ void godot_arvr_fill_projection_for_eye(void *data, godot_real *projection, godo
 // This is called after we render a frame for each eye so we
 // can send output. 
 void godot_arvr_commit_for_eye(void *data, godot_int eye, godot_rid *render_target, godot_rect2 *rect) {
-	auto t5_interface = get_t5_interface(data);	
+	auto t5_service = get_t5_service(data);	
+	if(!t5_service->is_connected()) {
+		LOG_ERROR_ONCE("Not connected")
+		return;
+	}	
 
 	godot::Rect2 screen_rect = *reinterpret_cast<godot::Rect2*>(rect);
 
@@ -178,8 +197,8 @@ void godot_arvr_commit_for_eye(void *data, godot_int eye, godot_rid *render_targ
 	// Tilt Five requires both left and right eye
 	// data at once so the underlying functions just waits until 
 	// both are finished to send.
-	if (t5_interface && eye == 2) {
-		t5_interface->send_frame();
+	if (t5_service && eye == 2) {
+		t5_service->send_frame();
 	}
  
 }
@@ -188,9 +207,9 @@ void godot_arvr_commit_for_eye(void *data, godot_int eye, godot_rid *render_targ
 // Process is called by the rendering thread right before we
 // render our next frame. Here we obtain our new poses.
 void godot_arvr_process(void *data) {
-	auto t5_interface = get_t5_interface(data);	
+	auto t5_service = get_t5_service(data);	
 
-	t5_interface->update_tracking();
+	t5_service->update_tracking();
 }
 
 
@@ -228,11 +247,15 @@ void godot_arvr_destructor(void *p_data)
 // Return a texture ID for the eye if we manage the final
 // output buffer.
 int godot_arvr_get_external_texture_for_eye(void *data, int eye) {
-	auto t5_interface = get_t5_interface(data);	
+	auto t5_service = get_t5_service(data);	
+	if(!t5_service->is_connected()) {
+		LOG_ERROR_ONCE("Not connected")
+		return 0;
+	}	
 
-	if(t5_interface && t5_interface->is_connected()) 
+	if(t5_service && t5_service->is_connected()) 
 	{
-		return t5_interface->get_eye_texture(eye == 1 ? Eye::Left : Eye::Right);
+		return t5_service->get_eye_texture(eye == 1 ? Eye::Left : Eye::Right);
 	}
 
 	return 0;

@@ -13,7 +13,7 @@ enum GlassesEvent {
 }
 
 
-var connected_glasses = -1
+var connected_glasses = null
 var arvr_interface = null
 
 func on_window_size_change():
@@ -24,39 +24,34 @@ func _ready():
 	$TextureRect.texture = $Viewport.get_texture()
 	
 	get_tree().get_root().connect("size_changed", self, "on_window_size_change")
-	on_window_size_change();
+	on_window_size_change()
 	
-	arvr_interface = ARVRServer.find_interface("TiltFive")
-	
-	if arvr_interface:
-		TiltFiveManager.connect("glasses_event", self, "on_glasses_event")
-		if TiltFiveManager.start_service("com.mygame", "0.1.0"):
-			print("service started")
+	TiltFiveManager.connect("glasses_event", self, "on_glasses_event")
+	if TiltFiveManager.start_service("com.mygame", "0.1.0"):
+		print("service started")
+	else:
+		print("Failed to start service")
 
-func on_glasses_event(glasses_num, event_num):
-	print("Event on glasses# ", glasses_num, ", ", event_num)
-	if connected_glasses >= 0 and connected_glasses != glasses_num:
+func on_glasses_event(glasses_id, event_num):
+	print("Event on glasses ", glasses_id, ", ", GlassesEvent.keys()[event_num-1])
+	if connected_glasses and connected_glasses != glasses_id:
 		return
 	match  event_num:
 		GlassesEvent.E_AVAILABLE:
-			print("Trying to connect glasses #", glasses_num)
-			connected_glasses = glasses_num 
-			TiltFiveManager.connect_glasses(glasses_num, "Godot Tilt Five")
+			print("Trying to connect to glasses ", glasses_id)
+			connected_glasses = glasses_id 
+			TiltFiveManager.connect_glasses(glasses_id, "Godot Tilt Five Demo")
 		GlassesEvent.E_UNAVAILABLE:
-			connected_glasses = -1
+			connected_glasses = null
 		GlassesEvent.E_CONNECTED:
-			print("Trying to start interface for glasses #", connected_glasses)
-			if arvr_interface.initialize():
-				print("Init okay")
-				$Viewport.arvr = true
-			else:
-				print("Failed to start interface")
-				connected_glasses = -1
-				TiltFiveManager.disconnect_glasses(connected_glasses)
+			print("Glasses ", connected_glasses, " connected")
+			$Viewport.arvr = true
+		GlassesEvent.E_DISCONNECTED:
+			connected_glasses = null
 		GlassesEvent.E_TRACKING:
-			print("Started tracking glasses #",glasses_num)
+			print("Started tracking glasses ",glasses_id)
 		GlassesEvent.E_NOT_TRACKING:
-			print("Stopped tracking glasses #",glasses_num)
+			print("Stopped tracking glasses ",glasses_id)
 	
 		
 	

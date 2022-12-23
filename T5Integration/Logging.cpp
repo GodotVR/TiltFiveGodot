@@ -22,6 +22,15 @@ namespace T5Integration {
 		ObjectRegistry::logger()->log_string(message);
 	}
 
+	
+	void log_error(const char* message, const char* p_function, const char* p_file, int p_line){
+		ObjectRegistry::logger()->log_error(message, p_function, p_file, p_line);
+	}
+
+	void log_warning(const char* message, const char* p_function, const char* p_file, int p_line) {
+		ObjectRegistry::logger()->log_warning(message, p_function, p_file, p_line);
+	}
+
 	void log_tilt_five_error(T5_Result result_code, const char *p_function, const char *p_file, int p_line) {
 		ObjectRegistry::logger()->log_error(t5GetResultMessage(result_code), p_function, p_file, p_line);
 	}

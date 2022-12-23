@@ -3,8 +3,6 @@
 #include <Logging.h>
 #include <Wand.h>
 
-void HackMakeCurrent();
-
 using TaskSystem::task_sleep;
 using TaskSystem::run_in_foreground;
 using TaskSystem::run_now;
@@ -38,7 +36,6 @@ namespace T5Integration {
 		out_position = _glasses_pose.posGLS_GBD;
 		out_orientation = _glasses_pose.rotToGLS_GBD;
 	}
-
 
 	void Glasses::get_glasses_position(float& out_pos_x, float& out_pos_y, float& out_pos_z) {
 		out_pos_x = _glasses_pose.posGLS_GBD.x;
@@ -375,13 +372,15 @@ namespace T5Integration {
 			co_await task_sleep(_poll_rate_for_connecting);
 		}
 		co_await run_in_foreground;
-		if (result != T5_SUCCESS) {
-			LOG_T5_ERROR(result);
-		}
-		else {
+		if (result == T5_SUCCESS) {
 			buffer.resize(buffer_size);
 			_friendly_name = buffer.data();
 		}
+		else if(result == T5_ERROR_SETTING_UNKNOWN) {
+			_friendly_name = _id;
+		}
+		else
+			LOG_T5_ERROR(result);
 	}
 
 
@@ -416,8 +415,6 @@ namespace T5Integration {
 		// T5_ERROR_INVALID_STATE seems to mean previously initialized
 		bool is_graphics_initialized = (result == T5_SUCCESS || result == T5_ERROR_INVALID_STATE);
 		if (!is_graphics_initialized) {
-			// This is to get around a T5 initialization bug that should be fixed in the version 1.3
-			HackMakeCurrent();
 			LOG_T5_ERROR(result);
 			return false;
 		}

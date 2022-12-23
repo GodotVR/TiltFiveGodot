@@ -31,7 +31,6 @@ margin_right = 1216.0
 margin_bottom = 768.0
 
 [node name="Viewport" type="Viewport" parent="."]
-arvr = true
 size = Vector2( 1216, 768 )
 msaa = 2
 hdr = false
