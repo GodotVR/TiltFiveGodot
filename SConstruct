@@ -1,6 +1,6 @@
 #!python
 import os
-import scons_compiledb
+#import scons_compiledb
 
 opts = Variables([], ARGUMENTS)
 
@@ -11,7 +11,7 @@ VariantDir("build/T5Integration","T5Integration", duplicate=False)
 # Gets the standard flags CC, CCX, etc.
 env = DefaultEnvironment()
 
-scons_compiledb.enable_with_cmdline(env)
+#scons_compiledb.enable_with_cmdline(env)
 
 # Define our options
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
