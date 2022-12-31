@@ -45,6 +45,8 @@ public:
 	size_t get_glasses_count() { return _glasses_list.size(); }
 
 	const std::vector<GlassesEvent> get_events();
+	const std::string get_glasses_id(size_t glasses_idx);
+	const std::string get_glasses_name(size_t glasses_idx);
 
 	void update_connection();
 	void update_tracking();
@@ -70,6 +72,15 @@ protected:
 
 	Scheduler::Ptr _scheduler;
 };
+
+
+inline const std::string T5Service::get_glasses_id(size_t glasses_idx) {
+	return glasses_idx < _glasses_list.size() ? _glasses_list[glasses_idx]->get_id() : std::string();
+}
+
+inline const std::string T5Service::get_glasses_name(size_t glasses_idx) {
+	return glasses_idx < _glasses_list.size() ? _glasses_list[glasses_idx]->get_name() : std::string();
+}
 
 
 }

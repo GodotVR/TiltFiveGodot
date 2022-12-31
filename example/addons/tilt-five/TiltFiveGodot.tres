@@ -1,0 +1,7 @@
+[gd_resource type="GDNativeLibrary" format=2]
+
+[resource]
+singleton = true
+reloadable = false
+entry/Windows.64 = "res://addons/tilt-five/win64/TiltFiveGodot.dll"
+dependency/Windows.64 = [ "res://addons/tilt-five/win64/TiltFiveNative.dll" ]

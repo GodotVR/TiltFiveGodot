@@ -52,5 +52,5 @@ config.log
 .compile_commands.json
 compile_commands.json
 
-example
+example/addons/tilt-five/win64
 build
