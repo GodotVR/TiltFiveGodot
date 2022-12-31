@@ -51,3 +51,6 @@ config.log
 .vscode
 .compile_commands.json
 compile_commands.json
+
+example
+build
