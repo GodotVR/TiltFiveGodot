@@ -96,7 +96,7 @@ void TiltFiveManager::add_glasses(int glasses_idx) {
 bool TiltFiveManager::try_find_glasses_idx(const String& glasses_id, int& out_glasses_idx) {
     for(out_glasses_idx = 0; out_glasses_idx < _glasses_ids.size(); ++out_glasses_idx)
     {
-        if(glasses_id ==  _glasses_ids[out_glasses_idx].c_str())
+        if(glasses_id == _glasses_ids[out_glasses_idx].c_str())
             return true;
     }
     return false;

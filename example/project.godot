@@ -10,17 +10,17 @@ config_version=4
 
 [application]
 
-config/name="demo"
-run/main_scene="res://Root.tscn"
+config/name="example"
+run/main_scene="res://addons/tilt-five/scenes/t5-scene.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-TiltFiveManager="*res://bin/tilt_five_manager.gdns"
+TiltFiveManager="*res://addons/tilt-five/tilt_five_manager.gdns"
 
 [gdnative]
 
-singletons=[ "res://bin/TiltFiveGodot.tres" ]
+singletons=[ "res://addons/tilt-five/TiltFiveGodot.tres" ]
 
 [gui]
 
