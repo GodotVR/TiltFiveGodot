@@ -375,13 +375,15 @@ namespace T5Integration {
 			co_await task_sleep(_poll_rate_for_connecting);
 		}
 		co_await run_in_foreground;
-		if (result != T5_SUCCESS) {
-			LOG_T5_ERROR(result);
-		}
-		else {
+		if (result == T5_SUCCESS) {
 			buffer.resize(buffer_size);
 			_friendly_name = buffer.data();
 		}
+		else if(result == T5_ERROR_SETTING_UNKNOWN) {
+			_friendly_name = _id;
+		}
+		else
+			LOG_T5_ERROR(result);
 	}
 
 

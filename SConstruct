@@ -11,8 +11,6 @@ VariantDir("build/T5Integration","T5Integration", duplicate=False)
 # Gets the standard flags CC, CCX, etc.
 env = DefaultEnvironment()
 
-print('==================>', env.subst("$ZIPCOM"))
-
 scons_compiledb.enable_with_cmdline(env)
 
 # Define our options
