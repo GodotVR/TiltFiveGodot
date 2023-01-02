@@ -11,6 +11,19 @@ is supposed to come at some point in the future and support for that platform wi
 
 ## Build
 
+### Prerequisites
+
+After cloning this repository be sure to get the sub modules
+
+```git submodule init
+git submodule update
+cd godot-cpp
+git submodule init
+git submodule update
+```
+
+### Building extension 
+
 This project uses the same [SCons](https://scons.org/) build system used by Godot project.
 scons should be run from an environment that has the Microsoft x64 development tools setup.
 
