@@ -4,18 +4,22 @@ TiltFiveGodot is **GDNative** extension for the Godot engine to connect to the [
 system. It implements Godot's **ARVRinterface** and has GDNative class called TiltFiveManager for scripts to connect 
 glasses and handle connection events.
 
-This extension is in it's early days and is probably buggy and subject to changes in interface.
-
 ## Platforms
 
 Currently only Windows 10/11 is supported because that is the only platform supported by Tilt Five. T5 linux support
-is supposed to come at some point in the future and support for that platform will revisted when it becomes available. 
+is supposed to come at some point in the future and support for that platform will revisited when it becomes available. 
 
 ## Build
 
-This project uses the same [SCons](https://scons.org/) build system used by Godot project. It might be useful to refer 
-to Godot's own [documentation](https://docs.godotengine.org/en/stable/tutorials/scripting/gdnative/index.html) 
-about building extensions.
+This project uses the same [SCons](https://scons.org/) build system used by Godot project. 
+
+> `scons target=[debug | release]` Build the shared library. Result is in `build\bin`
+
+> `scons example target=[debug | release]` Copy build products to the `example\addons\tilt-five`
+
+> `scons zip target=[debug | release]` Create a zip archive of `example\addons`
+
+Note that currently due to bugs the zip archive is not compatible with godot's import function.
 
 ## Using 
 
