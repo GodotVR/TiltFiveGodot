@@ -44,7 +44,7 @@ Note that currently due to bugs the zip archive is not compatible with godot's i
 After building the example you should be able to open the Godot project in the example directory
 and run the default scene.
 
-If you wan to use the extension in your own project follow these steps.
+If you want to use the extension in your own project follow these steps.
 
 1) Copy `example\addons` to your own projects root directory. 
 
