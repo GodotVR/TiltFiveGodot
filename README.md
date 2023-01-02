@@ -11,7 +11,8 @@ is supposed to come at some point in the future and support for that platform wi
 
 ## Build
 
-This project uses the same [SCons](https://scons.org/) build system used by Godot project. 
+This project uses the same [SCons](https://scons.org/) build system used by Godot project.
+scons should be run from an environment that has the Microsoft x64 development tools setup.
 
 > `scons target=[debug | release]` Build the shared library. Result is in `build\bin`
 
