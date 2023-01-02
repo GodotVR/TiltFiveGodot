@@ -21,9 +21,20 @@ This project uses the same [SCons](https://scons.org/) build system used by Godo
 
 Note that currently due to bugs the zip archive is not compatible with godot's import function.
 
-## Using 
+## Basic usage 
 
-There is a demo project. There will be better docs here as the extension matures.
+After building the example you should be able to open the Godot project in the example directory
+and run the default scene.
+
+If you wan to use the extension in your own project follow these steps.
+
+1) Copy `example\addons` to your own projects root directory. 
+
+2) In Godot's project setting add `addons\tilt-five\TiltFiveManager` into the `Autoload` tab.
+
+3) From `addons\tilt-five\scenes` load the `t5-scene` or `TiltFiveRig` scenes and run. 
+
+4) From here you should be able to follow documentation for usage of Godot's AR/VR system.
 
 ## Dependencies
 
