@@ -13,13 +13,15 @@ is supposed to come at some point in the future and support for that platform wi
 
 ### Prerequisites
 
-After cloning this repository be sure to get the sub modules
+After cloning this repository be sure to get and build the submodules
 
 ```git submodule init
 git submodule update
 cd godot-cpp
 git submodule init
 git submodule update
+scons
+scons target=release
 ```
 
 ### Building extension 
