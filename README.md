@@ -13,6 +13,9 @@ is supposed to come at some point in the future and support for that platform wi
 
 ### Prerequisites
 
+Make sure you have [SCons](https://scons.org/) installed and a C++20 compatible 
+compiler like Visual C++ 2022. 
+
 After cloning this repository be sure to get and build the submodules
 
 ```git submodule init
@@ -24,10 +27,9 @@ scons
 scons target=release
 ```
 
-### Building extension 
+### Building the extension
 
-This project uses the same [SCons](https://scons.org/) build system used by Godot project.
-scons should be run from an environment that has the Microsoft x64 development tools setup.
+Scons should be run from an environment that has the Microsoft x64 development tools setup.
 
 > `scons target=[debug | release]` Build the shared library. Result is in `build\bin`
 
