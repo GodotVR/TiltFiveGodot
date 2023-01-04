@@ -2,7 +2,10 @@ TiltFiveGodot is GDNative extension for the Godot engine to connect to the Tilt 
 system. It implements Godot's ARVRinterface and has GDNative class called TiltFiveManager for scripts to connect 
 glasses and handle connection events.
 
-Basic usage.
+Basic usage
+
+See https://patrickdown.github.io/tilt-five-godot/Tilt%20Five%20Godot.html for more comprehensive
+instructions
 
 1) Install using Godot's `install` option in the AssetLib tab or by unzipping this archive 
 into the root of your Godot project. 
