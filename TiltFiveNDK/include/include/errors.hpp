@@ -122,6 +122,9 @@ enum class Error {
 
     /// Permission denied
     kPermissionDenied = T5_PERMISSION_DENIED,
+
+    /// Invalid buffer size
+    kInvalidBuffer = T5_ERROR_INVALID_BUFFER_SIZE,
 };
 
 /// \}

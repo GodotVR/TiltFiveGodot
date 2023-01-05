@@ -3,8 +3,6 @@
 #include <Logging.h>
 #include <Wand.h>
 
-void HackMakeCurrent();
-
 using TaskSystem::task_sleep;
 using TaskSystem::run_in_foreground;
 using TaskSystem::run_now;
@@ -167,7 +165,7 @@ namespace T5Integration {
 				_state.clear(GlassesState::READY);
 				{
 					std::lock_guard lock(g_t5_exclusivity_group_1);
-					result = t5AcquireGlasses(_glasses_handle, _application_name.c_str());
+					result = t5ReserveGlasses(_glasses_handle, _application_name.c_str());
 				}
 				if (result == T5_SUCCESS || result == T5_ERROR_ALREADY_CONNECTED)
 					continue;
@@ -414,12 +412,10 @@ namespace T5Integration {
 	bool Glasses::initialize_graphics() {
 
 		// t5 exclusivity group 3 - serialized in main thread
-		auto result = t5InitGlassesGraphicsContext(_glasses_handle, kT5_GraphicsApi_Gl, nullptr);
+		auto result = t5InitGlassesGraphicsContext(_glasses_handle, kT5_GraphicsApi_GL, nullptr);
 		// T5_ERROR_INVALID_STATE seems to mean previously initialized
 		bool is_graphics_initialized = (result == T5_SUCCESS || result == T5_ERROR_INVALID_STATE);
 		if (!is_graphics_initialized) {
-			// This is to get around a T5 initialization bug that should be fixed in the version 1.3
-			HackMakeCurrent();
 			LOG_T5_ERROR(result);
 			return false;
 		}
@@ -437,7 +433,7 @@ namespace T5Integration {
 		T5_Result result;
 		{
 			std::lock_guard lock(g_t5_exclusivity_group_1);
-			result = t5GetGlassesPose(_glasses_handle, &_glasses_pose);
+			result = t5GetGlassesPose(_glasses_handle, kT5_GlassesPoseUsage_GlassesPresentation,  &_glasses_pose);
 		}
 		bool isTracking = (result == T5_SUCCESS);
 
