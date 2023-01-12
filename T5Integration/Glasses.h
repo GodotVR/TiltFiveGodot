@@ -70,6 +70,8 @@ class Glasses
     void get_glasses_orientation(float& out_quat_x, float& out_quat_y, float& out_quat_z, float& out_quat_w);
 	void send_frame(intptr_t leftEyeTexture, intptr_t rightEyeTexture);
 
+    void set_sRGB_texture(bool is_sRGB);
+    void set_upside_down_texture(bool is_upside_down);
     bool update_connection();
     bool update_tracking();
 
@@ -120,6 +122,8 @@ private:
 
 	GlassesFlags _state;
 
+    bool _is_sRGB_texture = true;
+    bool _is_upside_down_texture = false;
 	WandList _wand_list;
     std::vector<uint8_t> _previous_wand_state;
 	//T5_Result _last_wand_error;
@@ -175,6 +179,12 @@ inline void Glasses::get_display_size(int& width, int& height)
     height = 768; 
 }
 
+inline void Glasses::set_sRGB_texture(bool is_sRGB) {
+    _is_sRGB_texture = is_sRGB;
+}
+inline void Glasses::set_upside_down_texture(bool is_upside_down) {
+    _is_upside_down_texture = is_upside_down;
+}
 struct GlassesEvent {
     enum EType
     {

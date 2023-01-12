@@ -508,8 +508,8 @@ namespace T5Integration {
 			get_eye_position(Right, frameInfo.posRVC_GBD);
 			frameInfo.rotToRVC_GBD = _glasses_pose.rotToGLS_GBD;
 
-			frameInfo.isUpsideDown = false;
-			frameInfo.isSrgb = false;
+			frameInfo.isUpsideDown = _is_upside_down_texture;
+			frameInfo.isSrgb = _is_sRGB_texture;
 
 			// t5 exclusivity group 3 - serialized in main thread
 			T5_Result result = t5SendFrameToGlasses(_glasses_handle, &frameInfo);
