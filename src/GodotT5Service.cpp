@@ -201,8 +201,8 @@ void GodotT5Service::create_textures(Glasses::Ptr glasses) {
     glasses->get_display_size(width, height);
 
     Ref<Image> image = Image::_new();
-    godot::Color bg(0,0,0,1);
-    image->create(width, height, false, godot::Image::FORMAT_RGBA8);
+    godot::Color bg(0,0,0);
+    image->create(width, height, false, godot::Image::FORMAT_RGB8);
     image->lock();
     for(int y = 0; y < height; ++y) 
     {

@@ -30,7 +30,6 @@ public:
     void connect_glasses(const String glasses_id, const String display_name);
     void disconnect_glasses(const String glasses_id);
 
-    void set_sRBG_texture(const String glasses_id, const bool is_sRGB);
     void set_upside_down_texture(const String glasses_id, const bool is_upside_down);
     static void _register_methods();
 

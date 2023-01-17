@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://addons/tilt-five/scenes/color-box.gd" type="Script" id=1]
+
+[sub_resource type="CubeMesh" id=1]
+
+[node name="MeshInstance" type="MeshInstance"]
+transform = Transform( 0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 0, 0 )
+mesh = SubResource( 1 )
+script = ExtResource( 1 )

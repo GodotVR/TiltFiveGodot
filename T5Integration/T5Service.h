@@ -42,7 +42,6 @@ public:
 	void connect_glasses(int glasses_num, std::string display_name);
 	void disconnect_glasses(int glasses_num);
 
-    void set_sRGB_texture(int glasses_num, bool is_sRGB);
     void set_upside_down_texture(int glasses_num, bool is_upside_down);
 	size_t get_glasses_count() { return _glasses_list.size(); }
 
@@ -84,10 +83,6 @@ inline const std::string T5Service::get_glasses_name(size_t glasses_idx) {
 	return glasses_idx < _glasses_list.size() ? _glasses_list[glasses_idx]->get_name() : std::string();
 }
 
-
-inline void T5Service::set_sRGB_texture(int glasses_idx, bool is_sRGB) {
-	if(glasses_idx < _glasses_list.size()) _glasses_list[glasses_idx]->set_sRGB_texture(is_sRGB);
-}
 inline void T5Service::set_upside_down_texture(int glasses_idx, bool is_upside_down) {
 	if(glasses_idx < _glasses_list.size()) _glasses_list[glasses_idx]->set_upside_down_texture(is_upside_down);
 }

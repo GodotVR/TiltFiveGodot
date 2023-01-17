@@ -102,17 +102,6 @@ bool TiltFiveManager::try_find_glasses_idx(const String& glasses_id, int& out_gl
     return false;
 }
 
-void TiltFiveManager::set_sRBG_texture(const String glasses_id, const bool is_sRGB) {
-    if(!_t5_service) return;
-    int glasses_idx;
-    if(try_find_glasses_idx(glasses_id, glasses_idx)) {
-        _t5_service->set_sRGB_texture(glasses_idx, is_sRGB);
-    }
-    else {
-        auto msg = "Unknown glasses id " + glasses_id;
-        LOG_ERROR(msg.ascii().get_data());
-    }   
-}
 void TiltFiveManager::set_upside_down_texture(const String glasses_id, const bool is_upside_down) {
     if(!_t5_service) return;
     int glasses_idx;
@@ -129,7 +118,6 @@ void TiltFiveManager::_register_methods() {
     register_method<bool (TiltFiveManager::*) (const String, const String)>("start_service", &TiltFiveManager::start_service);
     register_method("connect_glasses", &TiltFiveManager::connect_glasses);
     register_method("disconnect_glasses", &TiltFiveManager::disconnect_glasses);
-    register_method("set_sRBG_texture", &TiltFiveManager::set_sRBG_texture);
     register_method("set_upside_down_texture", &TiltFiveManager::set_upside_down_texture);
 
     register_signal<TiltFiveManager>((char *)"glasses_event", "glasses_id", GODOT_VARIANT_TYPE_STRING, "event", GODOT_VARIANT_TYPE_INT);
