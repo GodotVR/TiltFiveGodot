@@ -18,7 +18,8 @@ compiler like Visual C++ 2022.
 
 After cloning this repository be sure to get and build the submodules
 
-```git submodule init
+```
+git submodule init
 git submodule update
 cd godot-cpp
 git submodule init
