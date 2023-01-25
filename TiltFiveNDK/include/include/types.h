@@ -37,6 +37,12 @@
 /// \brief The maximum number of characters allowed for string values
 #define T5_MAX_STRING_PARAM_LEN (260)
 
+/// \brief The minimum width required for camera image buffers
+#define T5_MIN_CAM_IMAGE_BUFFER_WIDTH (768)
+
+/// \brief The minimum height required for camera image buffers
+#define T5_MIN_CAM_IMAGE_BUFFER_HEIGHT (600)
+
 /// \brief 2D vector
 typedef struct {
     float x;
@@ -82,10 +88,10 @@ typedef enum {
     kT5_GraphicsApi_None = 1,
 
     /// \brief OpenGL
-    kT5_GraphicsApi_Gl = 2,
+    kT5_GraphicsApi_GL = 2,
 
-    /// \brief Direct3D (Windows Only)
-    kT5_GraphicsApi_D3d = 3,
+    /// \brief Direct3D 11 (Windows Only)
+    kT5_GraphicsApi_D3D11 = 3,
 } T5_GraphicsApi;
 
 /// \brief Possible gameboard types
@@ -158,34 +164,77 @@ typedef enum {
     kT5_ConnectionState_Disconnected = 4,
 } T5_ConnectionState;
 
-/// \brief Glasses Pose information to be retrieved with t5GetGlassesPose()
+/// \brief Glasses pose usage indicator
+typedef enum {
+    /// \brief The pose will be used to render images to be presented on the glasses.
+    ///
+    /// Querying a glasses pose for this usage will return a pose prediction intended to account for
+    /// the render and presentation latency. The predicted pose is prone to include errors, and the
+    /// rendered images may appear very jittery if they are displayed on a device other than the
+    /// glasses. When displayed via the glasses, the on-glasses image stabilization compensates for
+    /// this prediction error, so the image should not appear jittery.
+    kT5_GlassesPoseUsage_GlassesPresentation = 1,
+
+    /// \brief The pose will be used to render images to be presented on a device other than the
+    /// glasses, such at the host system's primary display.
+    ///
+    /// Querying a glasses pose for this usage will return a pose with less noise than that intended
+    /// for presentation via the glasses.
+    kT5_GlassesPoseUsage_SpectatorPresentation = 2,
+} T5_GlassesPoseUsage;
+
+/// \brief Glasses pose information to be retrieved with t5GetGlassesPose()
+///
+/// The pose describes the relationship between two reference frames: one defined in terms of the
+/// glasses, and the other in terms of the gameboard. Both reference frames are right-handed. The
+/// glasses reference frame, abbreviated as GLS, has its origin at the midpoint between the
+/// effective optical position of the projectors. It is oriented such that +X points to the right,
+/// +Y points up, and +Z points backward for someone wearing the glasses. The gameboard reference
+/// frame, abbreviated GBD, is oriented such that +X points to the right, +Y points forward, and +Z
+/// points up from the perspective of a person facing the gameboard on a table from the side of the
+/// gameboard with the T5 logo. The origin of the gameboard reference frame is located at the point
+/// equidistant from the three gameboard sides nearest to the T5 logo (i.e. the side on which the
+/// logo appears and the two adjacent sides). This places the gameboard origin in the center of the
+/// square LE gameboard, and off-center along the longer dimension of the rectangular XE gameboard.
 typedef struct {
-    /// \brief The timestamp of the pose based on latest IMU samples.
+    /// \brief The timestamp of the pose.
     uint64_t timestampNanos;
 
-    /// \brief The position of the origin of the GLS (glasses) frame in the GBD (gameboard) frame.
+    /// \brief The position of the origin of the GLS (glasses) frame relative to the GBD (gameboard)
+    /// frame.
     T5_Vec3 posGLS_GBD;
 
-    /// \brief The rotation taking points in the GBD (gameboard) frame orientation to the GLS
-    /// (glasses) frame orientation.
+    /// \brief The rotation that transforms points in the GBD (gameboard) frame orientation to the
+    /// GLS (glasses) frame orientation.
     T5_Quat rotToGLS_GBD;
 
     /// \brief The type of gameboard visible for this pose
     T5_GameboardType gameboardType;
 } T5_GlassesPose;
 
+/// \brief Camera stream configuration
+typedef struct {
+    /// \brief The index of the camera to be modified.
+    uint8_t cameraIndex;
+
+    /// \brief Enable or disable the camera stream. True = enabled
+    bool enabled;
+} T5_CameraStreamConfig;
+
 /// Render information to be used with t5SendFrameToGlasses()
 typedef struct {
     /// \brief Texture handle for the left image.
     ///
     /// The meaning of the handle will depend on the current graphics API.
-    /// \see T5_GraphicsApi for further details.
+    ///
+    /// \see \ref aboutGraphicsApi for further details.
     void* leftTexHandle;
 
     /// \brief Texture handle for the right image.
     ///
     /// The meaning of the handle will depend on the current graphics API.
-    /// \see T5_GraphicsApi for further details.
+    ///
+    /// \see \ref aboutGraphicsApi for further details.
     void* rightTexHandle;
 
     /// \brief Width of the textures pointed to by leftTexHandle and rightTexHandle.
@@ -223,6 +272,42 @@ typedef struct {
     T5_Vec3 posRVC_GBD;
 } T5_FrameInfo;
 
+/// \brief Camera Frame information to be retrieved with t5GetFilledCamImageBuffer()
+typedef struct {
+    /// \brief The width of the image in the image buffer. Empty buffers should set these parameters
+    /// to 0.
+    uint16_t imageWidth;
+
+    /// \brief The height of the image in the image buffer. Empty buffers should set these
+    /// parameters to 0.
+    uint16_t imageHeight;
+
+    /// \brief The stride of the image in the image buffer. Empty buffers should set these
+    /// parameters to 0.
+    uint16_t imageStride;
+
+    /// \brief The index of the desired camera. 0 for tangible tracking camera, 1 for head tracking
+    /// camera.
+    uint8_t cameraIndex;
+
+    /// \brief The illumination mode for incoming frames. 0 for unknown frame. 1 for Light frames. 2
+    /// for dark frame.
+    uint8_t illuminationMode;
+
+    /// \brief The total size of the provided image buffer. Must be at least
+    /// T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT.
+    uint32_t bufferSize;
+
+    /// \brief The image buffer being filled by the Tilt Five service.
+    uint8_t* pixelData;
+
+    /// \brief The position of the camera relative to the GBD.
+    T5_Vec3 posCAM_GBD;
+
+    /// \brief The rotation of the camera relative to the GBD.
+    T5_Quat rotToCAM_GBD;
+} T5_CamImage;
+
 /// \brief Wand stream configuration
 typedef struct {
     /// \brief Enable or disable the entire stream. True = enabled
@@ -244,6 +329,18 @@ typedef enum {
     /// \brief Wand report (Pose, Buttons, Trigger, Stick, Battery)
     kT5_WandStreamEventType_Report = 4,
 } T5_WandStreamEventType;
+
+/// \brief Wand hand
+typedef enum {
+    /// \brief Hand unknown
+    kT5_Hand_Unknown = 0,
+
+    /// \brief Left hand
+    kT5_Hand_Left = 1,
+
+    /// \brief Right hand
+    kT5_Hand_Right = 2,
+} T5_Hand;
 
 /// \brief Contains wand related information (Pose, Buttons, Trigger, Stick, Battery)
 typedef struct {
@@ -298,6 +395,9 @@ typedef struct {
 
     /// \brief Position (Grip) - Vector3f
     T5_Vec3 posGrip_GBD;
+
+    /// \brief Wand hand
+    T5_Hand hand;
 } T5_WandReport;
 
 /// \brief Represents an event from the wand stream

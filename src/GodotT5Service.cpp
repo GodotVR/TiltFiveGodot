@@ -257,21 +257,39 @@ GodotT5Service::Ptr GodotT5ObjectRegistry::service() {
 
 
 T5Integration::T5Service::Ptr GodotT5ObjectRegistry::get_service() {
-	if (!_service)
-		_service = std::make_shared<GodotT5Service>();
-	return _service;
+    GodotT5Service::Ptr service;
+	if (_service.expired()) {
+		service = std::make_shared<GodotT5Service>();
+        _service = service;
+    }
+    else {
+        service = _service.lock();
+    }
+    return service;
 }
 
 T5Integration::T5Math::Ptr GodotT5ObjectRegistry::get_math() {
-	if (!_math)
-		_math = std::make_shared<GodotT5Math>();
-	return _math;
+    GodotT5Math::Ptr math;
+	if (_math.expired()) {
+		math = std::make_shared<GodotT5Math>();
+        _math = math;
+    }
+    else {
+        math = _math.lock();
+    }
+	return math;
 }
 
 T5Integration::Logger::Ptr GodotT5ObjectRegistry::get_logger() {
-	if (!_logger)
-		_logger = std::make_shared<GodotT5Logger>();
-	return _logger;
+		GodotT5Logger::Ptr logger;
+		if (_logger.expired()) {
+			logger = std::make_shared<GodotT5Logger>();
+			_logger = logger;
+		}
+		else {
+			logger = std::static_pointer_cast<GodotT5Logger>(_logger.lock());		
+        }
+		return logger;
 }
 
 }

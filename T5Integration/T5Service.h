@@ -43,6 +43,7 @@ public:
 	void disconnect_glasses(int glasses_num);
 
     void set_upside_down_texture(int glasses_num, bool is_upside_down);
+	
 	size_t get_glasses_count() { return _glasses_list.size(); }
 
 	const std::vector<GlassesEvent> get_events();
@@ -86,4 +87,5 @@ inline const std::string T5Service::get_glasses_name(size_t glasses_idx) {
 inline void T5Service::set_upside_down_texture(int glasses_idx, bool is_upside_down) {
 	if(glasses_idx < _glasses_list.size()) _glasses_list[glasses_idx]->set_upside_down_texture(is_upside_down);
 }
+
 }

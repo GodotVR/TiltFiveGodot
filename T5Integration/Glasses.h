@@ -71,6 +71,8 @@ class Glasses
 	void send_frame(intptr_t leftEyeTexture, intptr_t rightEyeTexture);
 
     void set_upside_down_texture(bool is_upside_down);
+
+    void set_upside_down_texture(bool is_upside_down);
     bool update_connection();
     bool update_tracking();
 
@@ -122,9 +124,10 @@ private:
 	GlassesFlags _state;
 
     bool _is_upside_down_texture = false;
+
+    bool _is_upside_down_texture = false;
 	WandList _wand_list;
     std::vector<uint8_t> _previous_wand_state;
-	//T5_Result _last_wand_error;
 
 	std::chrono::milliseconds _poll_rate_for_connecting = 100ms;
 	std::chrono::milliseconds _poll_rate_for_monitoring = 2s;
@@ -175,6 +178,10 @@ inline void Glasses::get_display_size(int& width, int& height)
 { 
     width = 1216; 
     height = 768; 
+}
+
+inline void Glasses::set_upside_down_texture(bool is_upside_down) {
+    _is_upside_down_texture = is_upside_down;
 }
 
 inline void Glasses::set_upside_down_texture(bool is_upside_down) {

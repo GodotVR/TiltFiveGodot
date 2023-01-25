@@ -30,14 +30,27 @@ namespace T5Integration {
 	}
 
 	Logger::Ptr ObjectRegistry::get_logger() {
-		if (!_logger)
-			_logger = std::make_shared<DefaultLogger>();
-		return _logger;
+		Logger::Ptr logger;
+		if (_logger.expired())
+		{
+			logger = std::make_shared<DefaultLogger>();
+			_logger = logger;
+		}
+		else {
+			logger = _logger.lock();
+		}
+		return logger;
 	}
 
 	Scheduler::Ptr ObjectRegistry::get_scheduler() {
-		if (!_scheduler)
-			_scheduler = std::make_shared<Scheduler>();
-		return _scheduler;
+		Scheduler::Ptr scheduler;
+		if (_scheduler.expired()) {
+			scheduler = std::make_shared<Scheduler>();
+			_scheduler = scheduler;
+		}
+		else {
+			scheduler = _scheduler.lock();
+		}
+		return scheduler;
 	}
 }

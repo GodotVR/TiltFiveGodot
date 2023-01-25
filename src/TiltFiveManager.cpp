@@ -13,6 +13,11 @@ TiltFiveManager::TiltFiveManager() {
 }
 
 TiltFiveManager::~TiltFiveManager() {
+    if(_arvr_interface_initialized)
+    {
+        _arvr_interface->uninitialize();
+        _arvr_interface_initialized = false;
+    }
     if(_t5_service)
         _t5_service->stop_service();
 }
@@ -104,6 +109,7 @@ bool TiltFiveManager::try_find_glasses_idx(const String& glasses_id, int& out_gl
 
 void TiltFiveManager::set_upside_down_texture(const String glasses_id, const bool is_upside_down) {
     if(!_t5_service) return;
+
     int glasses_idx;
     if(try_find_glasses_idx(glasses_id, glasses_idx)) {
         _t5_service->set_upside_down_texture(glasses_idx, is_upside_down);
@@ -113,6 +119,7 @@ void TiltFiveManager::set_upside_down_texture(const String glasses_id, const boo
         LOG_ERROR(msg.ascii().get_data());
     }   
 }
+
 void TiltFiveManager::_register_methods() {
     register_method("_process", &TiltFiveManager::_process);
     register_method<bool (TiltFiveManager::*) (const String, const String)>("start_service", &TiltFiveManager::start_service);

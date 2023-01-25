@@ -83,12 +83,13 @@ class Client : public std::enable_shared_from_this<Client> {
 private:
     static constexpr bool kDebug = true;
 
-    Client(std::string applicationId, std::string applicationVersion)
+    Client(std::string applicationId, std::string applicationVersion, const uint8_t sdkType)
         : mApplicationId(std::move(applicationId))
         , mApplicationVersion(std::move(applicationVersion)) {
 
         mClientInfo.applicationId      = mApplicationId.c_str();
         mClientInfo.applicationVersion = mApplicationVersion.c_str();
+        mClientInfo.sdkType            = sdkType;
     }
 
     const std::string mApplicationId;
@@ -112,11 +113,13 @@ private:
 
     friend auto obtainClient(const std::string& applicationId,
                              const std::string& applicationVersion,
-                             void* platformContext) -> Result<std::shared_ptr<Client>>;
+                             void* platformContext,
+                             const uint8_t sdkType) -> Result<std::shared_ptr<Client>>;
 
     static auto create(const std::string& applicationId,
                        const std::string& applicationVersion,
-                       void* platformContext) -> Result<std::shared_ptr<Client>> {
+                       void* platformContext,
+                       const uint8_t sdkType) -> Result<std::shared_ptr<Client>> {
 
         // Validate inputs
         if (applicationId.length() > T5_MAX_STRING_PARAM_LEN) {
@@ -128,7 +131,8 @@ private:
         }
 
         // Create client
-        auto client = std::shared_ptr<Client>(new Client(applicationId, applicationVersion));
+        auto client =
+            std::shared_ptr<Client>(new Client(applicationId, applicationVersion, sdkType));
 
         // Start up the service connection
         auto err = t5CreateContext(&client->mContext, &client->mClientInfo, platformContext);
@@ -341,16 +345,15 @@ class Glasses : public std::enable_shared_from_this<Glasses> {
     explicit Glasses(std::string identifier, std::shared_ptr<Client> client)
         : mIdentifier(std::move(identifier)), mClient(std::move(client)) {}
 
-    static auto create(std::string identifier,
-                       std::shared_ptr<Client> client) -> Result<std::shared_ptr<Glasses>> {
+    static auto create(std::string identifier, std::shared_ptr<Client> client)
+        -> Result<std::shared_ptr<Glasses>> {
 
         if (!client) {
             return tiltfive::Error::kInvalidArgument;
         }
 
         T5_Glasses handle;
-        T5_Result err = t5CreateGlasses(
-            client->mContext, identifier.c_str(), &handle);
+        T5_Result err = t5CreateGlasses(client->mContext, identifier.c_str(), &handle);
 
         if (err) {
             return static_cast<Error>(err);
@@ -472,11 +475,11 @@ public:
         }
     }
 
-    /// \brief Acquire glasses for exclusive operations by the client.
+    /// \brief Reserve glasses for exclusive operations by the client.
     ///
     /// Although several operations can be performed without acquiring an exclusive lock on glasses,
     /// there are a few for which an exclusive lock is required. Primarily, the ability to get poses
-    /// (getLatestGlassesPose()) and send frames (sendFrame()). To acquire glasses for exclusive
+    /// (getLatestGlassesPose()) and send frames (sendFrame()). To reserve glasses for exclusive
     /// use, use this function.
     ///
     /// Clients may request glasses that aren't fully available yet (e.g. a device that isn't fully
@@ -492,8 +495,8 @@ public:
     ///
     /// \param[in] displayName - string to display for this program in control panel (localized),
     ///                          e.g. "Awesome Game (Player 1)"
-    auto acquire(const std::string& displayName) -> Result<void> {
-        T5_Result err = t5AcquireGlasses(mGlasses, displayName.c_str());
+    auto reserve(const std::string& displayName) -> Result<void> {
+        T5_Result err = t5ReserveGlasses(mGlasses, displayName.c_str());
         if (!err) {
             return kSuccess;
         } else {
@@ -501,18 +504,18 @@ public:
         }
     }
 
-    /// \brief Ensure that acquired glasses are ready for exclusive operations.
+    /// \brief Ensure that reserved glasses are ready for exclusive operations.
     ///
-    /// Ensure that acquired glasses are ready for exclusive operations, such as the ability to get
-    /// poses (getLatestGlassesPose()) and send frames (sendFrame()).  To acquire glasses for
-    /// exclusive use, see acquire(). This *must* be checked for success prior to exclusive
+    /// Ensure that reserved glasses are ready for exclusive operations, such as the ability to get
+    /// poses (getLatestGlassesPose()) and send frames (sendFrame()).  To reserve glasses for
+    /// exclusive use, see reserve(). This *must* be checked for success prior to exclusive
     /// operations, otherwise those operations will fail.
     ///
     /// In normal operation, this will return successfully or contain the error
     /// tiltfive::Error::kTryAgain.  This should be called until success or an different error is
     /// seen.
     ///
-    /// If glasses are not acquired before calling, this will return an error.
+    /// If glasses are not reserved before calling, this will return an error.
     ///
     /// \return Result indicating success or error.
     auto ensureReady() -> Result<void> {
@@ -524,11 +527,11 @@ public:
         }
     }
 
-    /// \brief Release previously-acquired glasses
+    /// \brief Release previously-reserved glasses
     ///
-    /// Release glasses that were previously acquired for exclusive operations by the client.
+    /// Release glasses that were previously reserved for exclusive operations by the client.
     /// After calling this, exclusive operations cannot be used with the glasses unless the
-    /// glasses are again acquired and readied.
+    /// glasses are again reserved and readied.
     ///
     /// \return Result indicating success or error.
     auto release() -> Result<void> {
@@ -542,10 +545,12 @@ public:
 
     /// \brief Get the latest pose for this glasses
     ///
+    /// \param[in] usage ::T5_GlassesPoseUsage indicating the intended use for the glasses pose.
+    ///
     /// \return ::T5_GlassesPose representing the most recent pose.
-    auto getLatestGlassesPose() -> Result<T5_GlassesPose> {
+    auto getLatestGlassesPose(T5_GlassesPoseUsage usage) -> Result<T5_GlassesPose> {
         T5_GlassesPose pose;
-        T5_Result err = t5GetGlassesPose(mGlasses, &pose);
+        T5_Result err = t5GetGlassesPose(mGlasses, usage, &pose);
 
         if (!err) {
             return pose;
@@ -556,14 +561,64 @@ public:
 
     /// \brief Initialize the glasses for graphics operations.
     ///
-    /// \param[in] graphicsApi        - ::T5_GraphicsApi specifying the graphics API for the glasses.
-    /// \param[in] graphicsContext    - Meaning depends on the graphics API in use.
+    /// \param[in] graphicsApi     - ::T5_GraphicsApi specifying the graphics API for the glasses.
+    /// \param[in] graphicsContext - Meaning depends on the graphics API in use.
     auto initGraphicsContext(T5_GraphicsApi graphicsApi, void* graphicsContext) -> Result<void> {
         T5_Result err = t5InitGlassesGraphicsContext(mGlasses, graphicsApi, graphicsContext);
         if (!err) {
             return kSuccess;
         }
         return static_cast<Error>(err);
+    }
+
+    /// \brief Configure the wand event stream
+    ///
+    /// \param[in]  config  - ::T5_WandStreamConfig filled by client to detail configuration
+    auto configureCameraStream(T5_CameraStreamConfig config) -> Result<void> {
+        T5_Result err = t5ConfigureCameraStreamForGlasses(mGlasses, config);
+        if (!err) {
+            return kSuccess;
+        } else {
+            return static_cast<Error>(err);
+        }
+    }
+
+    /// Get the latest camera image for this glasses
+    //
+    /// \return ::T5_CamImage representing the most recent tt image.
+    auto getFilledCamImageBuffer() -> Result<T5_CamImage> {
+        T5_CamImage img;
+        T5_Result err = t5GetFilledCamImageBuffer(mGlasses, &img);
+        if (!err) {
+            return std::move(img);
+        } else {
+            return static_cast<Error>(err);
+        }
+    }
+
+    /// Submit a buffer to the camera image stream to hold Camera Frame data.
+    //
+    /// \param[in] imgBuffer - ::T5_CamImage representing the buffer to be filled.
+    auto submitEmptyCamImageBuffer(T5_CamImage* imgBuffer) -> Result<void> {
+        T5_Result err = t5SubmitEmptyCamImageBuffer(mGlasses, imgBuffer);
+        if (!err) {
+            return kSuccess;
+        } else {
+            return static_cast<Error>(err);
+        }
+    }
+
+    /// Cancel an image buffer in use by the service for freeing.
+    //
+    /// \param[in] buffer - A pointer to the buffer to be canceled and released from use by the
+    /// service.
+    auto cancelCamImageBuffer(uint8_t* buffer) -> Result<void> {
+        T5_Result err = t5CancelCamImageBuffer(mGlasses, buffer);
+        if (!err) {
+            return kSuccess;
+        } else {
+            return static_cast<Error>(err);
+        }
     }
 
     /// \brief Send a frame to display on the glasses
@@ -726,7 +781,7 @@ private:
             switch (*connectionState) {
                 case ConnectionState::kNotExclusivelyConnected: {
                     // Attempt to connect
-                    auto result = mGlasses->acquire(mDisplayName);
+                    auto result = mGlasses->reserve(mDisplayName);
                     if (!result) {
                         setLastAsyncError(result.error());
                     }
@@ -1279,13 +1334,16 @@ public:
 /// \param[in] applicationId      - Application ID. Refer to T5 docs for format.
 /// \param[in] applicationVersion - Application version. Refer to T5 docs for format.
 /// \param[in] platformContext    - Platform specific context. Refer to T5 docs for format.
+/// \param[in] sdkType            - Internal type. Leave at default value unless otherwise
+///                                 instructed by T5 staff.
 ///
 /// \return Instance of the Tilt Five™ API client or error.
 inline auto obtainClient(const std::string& applicationId,
                          const std::string& applicationVersion,
-                         void* platformContext) -> Result<std::shared_ptr<Client>> {
+                         void* platformContext,
+                         const uint8_t sdkType = 0) -> Result<std::shared_ptr<Client>> {
 
-    return Client::create(applicationId, applicationVersion, platformContext);
+    return Client::create(applicationId, applicationVersion, platformContext, sdkType);
 }
 
 /// \brief Obtain an instance of the Tilt Five™ Glasses
@@ -1294,8 +1352,8 @@ inline auto obtainClient(const std::string& applicationId,
 /// \param[in] client             - Instance of the Tilt Five™ API client
 ///
 /// \return Instance of the Tilt Five™ API Glasses or error.
-inline auto obtainGlasses(const std::string& identifier,
-                          const std::shared_ptr<Client>& client) -> Result<std::shared_ptr<Glasses>> {
+inline auto obtainGlasses(const std::string& identifier, const std::shared_ptr<Client>& client)
+    -> Result<std::shared_ptr<Glasses>> {
     return Glasses::create(identifier, client);
 }
 

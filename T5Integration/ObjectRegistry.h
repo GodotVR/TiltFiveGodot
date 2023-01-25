@@ -30,8 +30,8 @@ protected:
 
 	static ObjectRegistry* _instance;
 
-	Logger::Ptr _logger;
-	Scheduler::Ptr _scheduler;
+	Logger::Ptr::weak_type _logger;
+	Scheduler::Ptr::weak_type _scheduler;
 
 };
 }

@@ -110,8 +110,8 @@ class GodotT5ObjectRegistry : public T5Integration::ObjectRegistry {
 	T5Integration::Logger::Ptr get_logger() override;
 
 	protected:
-	GodotT5Service::Ptr _service;
-	GodotT5Math::Ptr _math;
+	GodotT5Service::Ptr::weak_type _service;
+	GodotT5Math::Ptr::weak_type _math;
 };
 
 

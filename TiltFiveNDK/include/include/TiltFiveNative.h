@@ -23,9 +23,9 @@
 #include "types.h"
 
 #ifndef __cplusplus
-#include <stdlib.h>
+#include <stddef.h>
 #else
-#include <cstdlib>
+#include <cstddef>
 #endif
 
 #ifdef _WIN32
@@ -55,7 +55,6 @@ extern "C" {
 /// \{
 
 /// \defgroup C_Ctx Context object management
-/// Require a ::T5_Context for invocation
 /// \{
 
 /// \brief Create a context object
@@ -82,8 +81,8 @@ extern "C" {
 /// for the duration of the context.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[out] context         - Pointer to a ::T5_Context to be created
 /// \param[in]  clientInfo      - ::T5_ClientInfo filled by client to detail client information.
@@ -107,8 +106,8 @@ T5_EXPORT T5_Result t5CreateContext(T5_Context* context,
 /// t5CreateContext() and closes it's connection to the Tilt Five™ service.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// Attempting to use a ::T5_Context after it has been destroyed will result in a
 /// ::T5_ERROR_NO_CONTEXT error.
@@ -136,8 +135,8 @@ T5_EXPORT void t5DestroyContext(T5_Context* context);
 /// entry being an empty string (IE The last entry is terminated with two nulls).
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]     context       - ::T5_Context returned by t5CreateContext().
 /// \param[out]    buffer        - Buffer to receive the list of devices as a series of null
@@ -173,7 +172,7 @@ T5_EXPORT T5_Result t5ListGlasses(T5_Context context, char* buffer, size_t* buff
 /// the glasses connection.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously from different
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
 /// threads. The calling thread must be the thread that provided the graphics context.
 ///
 /// \param[in]  context         - ::T5_Context returned by t5CreateContext().
@@ -197,8 +196,8 @@ T5_EXPORT T5_Result t5CreateGlasses(T5_Context context, const char* id, T5_Glass
 /// associated resources.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// Attempting to use a ::T5_Glasses after it has been destroyed will result in a
 /// ::T5_ERROR_NO_CONTEXT error.
@@ -214,8 +213,8 @@ T5_EXPORT void t5DestroyGlasses(T5_Glasses* glasses);
 /// See ::T5_ParamSys for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  context - ::T5_Context returned by t5CreateContext()
 /// \param[in]  param   - ::T5_ParamSys to get value for.
@@ -245,8 +244,8 @@ T5_EXPORT T5_Result t5GetSystemIntegerParam(T5_Context context, T5_ParamSys para
 /// See ::T5_ParamSys for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  context - ::T5_Context returned by t5CreateContext()
 /// \param[in]  param   - ::T5_ParamSys to get value for.
@@ -276,8 +275,8 @@ T5_EXPORT T5_Result t5GetSystemFloatParam(T5_Context context, T5_ParamSys param,
 /// See ::T5_ParamSys for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  context       - ::T5_Context returned by t5CreateContext()
 /// \param[in]  param         - ::T5_ParamSys to get value for.
@@ -293,19 +292,22 @@ T5_EXPORT T5_Result t5GetSystemFloatParam(T5_Context context, T5_ParamSys param,
 /// \retval ::T5_SUCCESS                     Got the parameter
 /// \retval ::T5_ERROR_INVALID_ARGS          `param` was not a valid enumerant
 ///                                          <span class='altMeaning'>or</span>
-///                                          NULL was supplied for `value`
+///                                          NULL was supplied for `buffer`
+///                                          <span class='altMeaning'>or</span>
+///                                          NULL was supplied for `bufferSize`
 /// \retval ::T5_ERROR_IO_FAILURE            Failed to communicate with the service.
 /// \retval ::T5_ERROR_NO_SERVICE            Service is unavailable.
 /// \retval ::T5_ERROR_NO_CONTEXT            `context` is invalid.
 /// \retval ::T5_ERROR_SETTING_WRONG_TYPE    The requested parameter is not a UTF-8 string value.
 /// \retval ::T5_ERROR_SERVICE_INCOMPATIBLE  Service is incompatible; context cannot be used.
 ///                                          Need driver upgrade.
+/// \retval ::T5_ERROR_OVERFLOW              The provided buffer was insufficient to store the
+///                                          UTF-8 string value.
 ///
 /// The following are internal errors that should be discarded and/or logged:
 /// \retval ::T5_ERROR_SETTING_UNKNOWN    Internal (Not correctable): Setting is unknown.
 /// \retval ::T5_ERROR_INTERNAL           Internal (Not correctable): Generic error.
 /// \retval ::T5_ERROR_MISC_REMOTE        Internal (Not correctable): Generic service error.
-/// \retval ::T5_ERROR_OVERFLOW           Internal (Not correctable): Buffer overflow.
 T5_EXPORT T5_Result t5GetSystemUtf8Param(T5_Context context,
                                          T5_ParamSys param,
                                          char* buffer,
@@ -320,8 +322,8 @@ T5_EXPORT T5_Result t5GetSystemUtf8Param(T5_Context context,
 /// always result in a count of 0.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  context  - ::T5_Context returned by t5CreateContext().
 /// \param[out] buffer   - ::T5_ParamSys buffer to receive list of change parameters.
@@ -349,7 +351,7 @@ T5_EXPORT T5_Result t5GetChangedSystemParams(T5_Context context,
 /// \param[in]  gameboardType - ::T5_GameboardType we're interested in
 /// \param[out] gameboardSize - Resulting gameboard dimensions
 ///
-/// \retval ::T5_SUCCESS     Changed parameter list written to buffer.
+/// \retval ::T5_SUCCESS            Changed parameter list written to buffer.
 /// \retval ::T5_ERROR_INVALID_ARGS Gameboard type invalid or nullptr supplied for
 /// gameboardSize.
 T5_EXPORT T5_Result t5GetGameboardSize(T5_Context context,
@@ -365,12 +367,12 @@ T5_EXPORT T5_Result t5GetGameboardSize(T5_Context context,
 /// \defgroup glassesStateFns Glasses state management
 /// \brief Functions related to the management of glasses state and exclusivity
 
-/// \brief Acquire glasses for exclusive operations by the client
+/// \brief Reserve glasses for exclusive operations by the client
 /// \ingroup glassesStateFns
 ///
 /// Although several operations can be performed without acquiring an exclusive lock on glasses,
 /// there are a few for which an exclusive lock is required. Primarily, the ability to get poses
-/// (t5GetGlassesPose()) and send frames (t5SendFrameToGlasses()). To acquire glasses for
+/// (t5GetGlassesPose()) and send frames (t5SendFrameToGlasses()). To reserve glasses for
 /// exclusive use, use this function.
 ///
 /// Clients may request glasses that aren't fully available yet (e.g. a device that isn't fully
@@ -378,20 +380,20 @@ T5_EXPORT T5_Result t5GetGameboardSize(T5_Context context,
 /// two-step approach here requiring a request for exclusive access first.  To finish preparing
 /// for exclusive operations, use t5EnsureGlassesReady().
 ///
-/// Repeated calls to this function should be made until acquire is successful or an error
+/// Repeated calls to this function should be made until reserve is successful or an error
 /// occurs.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses         - ::T5_Glasses returned by t5CreateGlasses()
 /// \param[in]  displayName     - Null terminated C string to display in control panel (localized)
 ///                               E.g. "Awesome Game (Player 1)"
 ///
-/// \retval ::T5_SUCCESS                 Glasses acquired for this client.
-/// \retval ::T5_ERROR_UNAVAILABLE       Glasses already acquired by another client.
-/// \retval ::T5_ERROR_ALREADY_CONNECTED Glasses already acquired and connected for this client.
+/// \retval ::T5_SUCCESS                 Glasses reserved for this client.
+/// \retval ::T5_ERROR_UNAVAILABLE       Glasses already reserved by another client.
+/// \retval ::T5_ERROR_ALREADY_CONNECTED Glasses already reserved and connected for this client.
 /// \retval ::T5_ERROR_DEVICE_LOST       Glasses have disconnected - destroy glasses with
 ///                                      t5DestroyGlasses(), re-obtain with
 ///                                      t5CreateGlasses() and try again.
@@ -399,42 +401,42 @@ T5_EXPORT T5_Result t5GetGameboardSize(T5_Context context,
 /// \retval ::T5_ERROR_NO_CONTEXT        `glasses` is invalid.
 /// \retval ::T5_ERROR_INTERNAL          Internal error - not correctable.
 /// \retval ::T5_ERROR_STRING_OVERFLOW   `displayName` is too long.
-T5_EXPORT T5_Result t5AcquireGlasses(T5_Glasses glasses, const char* displayName);
+T5_EXPORT T5_Result t5ReserveGlasses(T5_Glasses glasses, const char* displayName);
 
-/// \brief Set the display name for glasses that were previously acquired for exclusive operations.
+/// \brief Set the display name for glasses that were previously reserved for exclusive operations.
 /// \ingroup glassesStateFns
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses         - ::T5_Glasses returned by t5CreateGlasses()
 /// \param[in]  displayName     - Null terminated C string to display in control panel (localized)
 ///                               E.g. "Awesome Game (Player 2)"
 ///
-/// \retval ::T5_SUCCESS               Glasses acquired for this client.
+/// \retval ::T5_SUCCESS               Glasses reserved for this client.
 /// \retval ::T5_ERROR_NO_CONTEXT      `glasses` is invalid.
 /// \retval ::T5_ERROR_INVALID_ARGS    Nullptr or invalid input supplied for `displayName`.
-/// \retval ::T5_ERROR_INVALID_STATE   Glasses weren't acquired first or client is invalid.
+/// \retval ::T5_ERROR_INVALID_STATE   Glasses weren't reserved first or client is invalid.
 /// \retval ::T5_ERROR_STRING_OVERFLOW `displayName` is too long.
 T5_EXPORT T5_Result t5SetGlassesDisplayName(T5_Glasses glasses, const char* displayName);
 
-/// \brief Ensure that acquired glasses are ready for exclusive operations.
+/// \brief Ensure that reserved glasses are ready for exclusive operations.
 /// \ingroup glassesStateFns
 ///
-/// Ensure that acquired glasses are ready for exclusive operations, such as the ability to get
-/// poses (t5GetGlassesPose()) and send frames (t5SendFrameToGlasses()).  To acquire glasses for
-/// exclusive use t5AcquireGlasses() .  This *must* be checked for success prior to exclusive
+/// Ensure that reserved glasses are ready for exclusive operations, such as the ability to get
+/// poses (t5GetGlassesPose()) and send frames (t5SendFrameToGlasses()).  To reserve glasses for
+/// exclusive use t5ReserveGlasses() .  This *must* be checked for success prior to exclusive
 /// operations, otherwise those operations will fail.
 ///
 /// In normal operation, this will return either ::T5_SUCCESS or ::T5_ERROR_TRY_AGAIN .  This
 /// should be called until success or an different error is seen.
 ///
-/// If glasses are not acquired before calling, this will return an error.
+/// If glasses are not reserved before calling, this will return an error.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses()
 ///
@@ -444,22 +446,22 @@ T5_EXPORT T5_Result t5SetGlassesDisplayName(T5_Glasses glasses, const char* disp
 /// \retval ::T5_ERROR_DEVICE_LOST       Glasses have disconnected - destroy glasses with
 ///                                      t5DestroyGlasses(), re-obtain with
 ///                                      t5CreateGlasses() and try again.
-/// \retval ::T5_ERROR_INVALID_STATE     Glasses weren't acquired first or client is invalid.
+/// \retval ::T5_ERROR_INVALID_STATE     Glasses weren't reserved first or client is invalid.
 /// \retval ::T5_ERROR_INVALID_ARGS      Nullptr or invalid input supplied for `info`.
 /// \retval ::T5_ERROR_NO_CONTEXT        `glasses` is invalid.
 /// \retval ::T5_ERROR_INTERNAL          Internal error - not correctable.
 /// \retval ::T5_ERROR_STRING_OVERFLOW   One or more of the provided strings is too long.
 T5_EXPORT T5_Result t5EnsureGlassesReady(T5_Glasses glasses);
 
-/// Release previously-acquired glasses.
+/// Release previously-reserved glasses.
 ///
-/// Release glasses that were previously acquired for exclusive operations by the client.
+/// Release glasses that were previously reserved for exclusive operations by the client.
 /// After calling this, exclusive operations cannot be used with the glasses unless the
-/// glasses are again acquired and readied.
+/// glasses are again reserved and readied.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses         - ::T5_Glasses returned by T5ApiSys::createGlasses()
 ///
@@ -471,8 +473,8 @@ T5_EXPORT T5_Result t5ReleaseGlasses(T5_Glasses glasses);
 /// \ingroup glassesStateFns
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses         - ::T5_Glasses returned by t5CreateGlasses()
 /// \param[out] connectionState - ::T5_ConnectionState representing connection state
@@ -487,8 +489,8 @@ T5_EXPORT T5_Result t5GetGlassesConnectionState(T5_Glasses glasses,
 /// \ingroup glassesStateFns
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]     glasses    - ::T5_Glasses returned by t5CreateGlasses()
 /// \param[out]    buffer     - C string buffer into which the result will be stored
@@ -507,30 +509,33 @@ T5_EXPORT T5_Result t5GetGlassesIdentifier(T5_Glasses glasses, char* buffer, siz
 /// \defgroup c_exclusive_functions Exclusive functions
 /// \brief Functions requiring an exclusive connection
 ///
-/// Exclusive connections are established with t5AcquireGlasses() and t5EnsureGlassesReady().
+/// Exclusive connections are established with t5ReserveGlasses() and t5EnsureGlassesReady().
 
 /// \brief Get the latest pose of the glasses
 /// \ingroup c_exclusive_functions
 ///
 /// \par Exclusive Connection
-/// Requires an exclusive connection - established with t5AcquireGlasses() and
+/// Requires an exclusive connection - established with t5ReserveGlasses() and
 /// t5EnsureGlassesReady().
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses().
+/// \param[in]  usage   - ::T5_GlassesPoseUsage indicating the intended use for the glasses pose.
 /// \param[out] pose    - ::T5_GlassesPose representing current glasses pose.
 ///
 /// \retval ::T5_SUCCESS             Pose written to `pose`.
 /// \retval ::T5_ERROR_INVALID_ARGS  Nullptr was supplied for `pose`.
 /// \retval ::T5_ERROR_NO_CONTEXT    `glasses` is invalid.
 /// \retval ::T5_ERROR_NOT_CONNECTED Glasses aren't exclusively connected for this client.
-///                                  Use t5AcquireGlasses() and t5EnsureGlassesReady() first.
+///                                  Use t5ReserveGlasses() and t5EnsureGlassesReady() first.
 /// \retval ::T5_ERROR_TRY_AGAIN     Pose wasn't been received from glasses yet.
 /// \retval ::T5_ERROR_INTERNAL      Internal error - not correctable.
-T5_EXPORT T5_Result t5GetGlassesPose(T5_Glasses glasses, T5_GlassesPose* pose);
+T5_EXPORT T5_Result t5GetGlassesPose(T5_Glasses glasses,
+                                     T5_GlassesPoseUsage usage,
+                                     T5_GlassesPose* pose);
 
 /// \brief Initialize the graphics context to enable sending rendered frames to the glasses.
 /// \ingroup c_exclusive_functions
@@ -546,8 +551,8 @@ T5_EXPORT T5_Result t5GetGlassesPose(T5_Glasses glasses, T5_GlassesPose* pose);
 ///
 /// \par Threading
 /// Exclusivity group 3 & Graphic thread only - Functions in this group must not be called
-/// simultaneously from different threads. The calling thread must be the thread that
-/// provided the graphics context.
+/// concurrently from different threads. The calling thread must be the thread that provided the
+/// graphics context.
 ///
 /// \param[in]  glasses         - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[in]  graphicsApi     - ::T5_GraphicsApi specifying the graphics API for the glasses.
@@ -561,13 +566,117 @@ T5_EXPORT T5_Result t5InitGlassesGraphicsContext(T5_Glasses glasses,
                                                  T5_GraphicsApi graphicsApi,
                                                  void* graphicsContext);
 
+/// \brief Configure the camera stream
+///
+/// \par Threading
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
+///
+/// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses()
+/// \param[in]  config  - ::T5_CameraStreamConfig filled by client to detail configuration
+///
+/// \retval ::T5_SUCCESS                Stream configured ok.
+/// \retval ::T5_ERROR_IO_FAILURE       Failed to communicate with the service.
+/// \retval ::T5_ERROR_NO_SERVICE       Service is unavailable.
+/// \retval ::T5_ERROR_TARGET_NOT_FOUND Device not found.
+/// \retval ::T5_ERROR_NO_CONTEXT       `glasses` is invalid.
+///
+/// The following are internal errors that should be discarded and/or logged:
+/// \retval ::T5_ERROR_INTERNAL         Internal (Not correctable): Generic error.
+/// \retval ::T5_ERROR_INVALID_STATE    Internal (Not correctable): Invalid state for request.
+T5_EXPORT T5_Result t5ConfigureCameraStreamForGlasses(T5_Glasses glasses,
+                                                      T5_CameraStreamConfig config);
+
+/// Get a new filled image buffer from the camera stream. Will always return the oldest filled
+/// buffer. This function does not block on call, and will return a TryAgain error if there are no
+/// available filled buffers. To ensure images don't become stale, continual polling of
+/// t5GetFilledCamImageBuffer() and resubmission of empty buffers via t5SubmitEmptyCamImageBuffer()
+/// is expected.
+//
+/// \par Exclusive Connection
+/// Requires an exclusive connection - established with makeExclusive().
+///
+/// \par Threading
+/// Exclusivity group 1 - Functions in this group must not be called simultaneously
+/// from different threads.
+///
+/// \param[in]  glasses - ::T5_Glasses returned by T5ApiSys::createGlasses().
+/// \param[out] image   - ::T5_CamImage representing a camera image wrapper that will contain a
+/// filled buffer upon successful return.
+///
+/// \retval ::T5_SUCCESS             Image written to `image`.
+/// \retval ::T5_ERROR_TRY_AGAIN     No available image.
+/// \retval ::T5_ERROR_INVALID_ARGS  Nullptr was supplied for `image`.
+/// \retval ::T5_ERROR_NO_CONTEXT    `glasses` is invalid.
+/// \retval ::T5_ERROR_NOT_CONNECTED Glasses aren't exclusively connected for this client.
+///                                  Use makeExclusive() first.
+/// \retval ::T5_INVALID_BUFFER      The buffer does not have the requisite size for a camera image
+/// \retval ::T5_ERROR_INTERNAL      Internal error - not correctable.
+T5_EXPORT T5_Result t5GetFilledCamImageBuffer(T5_Glasses glasses, T5_CamImage* image);
+
+/// Submit an empty image buffer to be filled by the camera frame stream
+//
+/// \par Exclusive Connection
+/// Requires an exclusive connection - established with makeExclusive().
+///
+/// \par Threading
+/// Exclusivity group 1 - Functions in this group must not be called simultaneously
+/// from different threads.
+///
+/// The memory in the image buffer Must remain valid until the corresponding wrapper is returned by
+/// t5GetFilledCamImageBuffer or the buffer is canceled by t5CancelCamImageBuffer
+///
+/// Note, only the image buffer inside of T5_CamImage is required to be kept valid. The T5_CamImage
+/// wrapper is not.
+///
+/// Incoming image is expected to have 0 width, height, and stride, and a buffer size larger than
+/// the minimum image size.
+///
+/// \param[in]  glasses - ::T5_Glasses returned by T5ApiSys::createGlasses().
+/// \param[in]  image   - ::T5_CamImage representing current camera image buffer to be filled.
+///
+/// \retval ::T5_SUCCESS             Buffer submitted to service.
+/// \retval ::T5_ERROR_INVALID_ARGS  Nullptr was supplied for `image`.
+/// \retval ::T5_ERROR_NO_CONTEXT    `glasses` is invalid.
+/// \retval ::T5_ERROR_NOT_CONNECTED Glasses aren't exclusively connected for this client.
+///                                  Use makeExclusive() first.
+/// \retval ::T5_INVALID_BUFFER      The buffer does not have the requisite size for a camera image
+/// \retval ::T5_ERROR_INTERNAL      Internal error - not correctable.
+T5_EXPORT T5_Result t5SubmitEmptyCamImageBuffer(T5_Glasses glasses, T5_CamImage* image);
+
+/// Clear out the remaining buffers and return all buffers as a vector of camera images
+//
+/// \par Exclusive Connection
+/// Requires an exclusive connection - established with makeExclusive().
+///
+/// \par Threading
+/// Exclusivity group 1 - Functions in this group must not be called simultaneously
+/// from different threads.
+///
+/// \param[in]  glasses - ::T5_Glasses returned by T5ApiSys::createGlasses().
+/// \param[in]  buffer  - A pointer to an image buffer that should be cancelled and no longer used
+/// by the service
+///
+/// \retval ::T5_SUCCESS             Buffer is no longer in use and is available for freeing
+/// \retval ::T5_ERROR_NO_CONTEXT    `glasses` is invalid.
+/// \retval ::T5_ERROR_NOT_CONNECTED Glasses aren't exclusively connected for this client.
+///                                  Use makeExclusive() first.
+/// \retval ::T5_ERROR_INTERNAL      Internal error - not correctable.
+T5_EXPORT T5_Result t5CancelCamImageBuffer(T5_Glasses glasses, uint8_t* buffer);
+
 /// \brief Send a frame to display on the glasses
 /// \ingroup c_exclusive_functions
 ///
-/// Both left and right frames are sent simultaneously via this call.
+/// Both left and right stereoscopic images are presented together via this call. The textures
+/// referred to by the `leftTexHandle` and `rightTexHandle` fields of \a info will be used within
+/// this call to enqueue and submit graphics operations that will read the texture data. Once this
+/// call returns, no additional operations referencing those textures will be performed. However,
+/// depending on the graphics API being used, the application may need to perform additional
+/// synchronization prior to freeing the texture resources in order to ensure that the queued
+/// graphics operations have completed.
 ///
 /// \par Exclusive Connection
-/// Requires an exclusive connection - established with t5AcquireGlasses() and
+/// Requires an exclusive connection - established with t5ReserveGlasses() and
 /// t5EnsureGlassesReady().
 ///
 /// \par Graphics Context
@@ -575,8 +684,8 @@ T5_EXPORT T5_Result t5InitGlassesGraphicsContext(T5_Glasses glasses,
 //
 /// \par Threading
 /// Exclusivity group 3 & Graphic thread only - Functions in this group must not be called
-/// simultaneously from different threads. The calling thread must be the thread that
-/// provided the graphics context.
+/// concurrently from different threads. The calling thread must be the thread that provided the
+/// graphics context.
 ///
 /// \see \ref aboutGraphicsApi
 ///
@@ -588,7 +697,7 @@ T5_EXPORT T5_Result t5InitGlassesGraphicsContext(T5_Glasses glasses,
 /// \retval ::T5_ERROR_INVALID_STATE          graphicsApi was ::kT5_GraphicsApi_None when
 ///                                           t5CreateGlasses() was called.
 /// \retval ::T5_ERROR_NOT_CONNECTED          Glasses aren't exclusively connected for this
-///                                           client. Use t5AcquireGlasses() and
+///                                           client. Use t5ReserveGlasses() and
 ///                                           t5EnsureGlassesReady() first.
 /// \retval ::T5_ERROR_INVALID_GFX_CONTEXT    Graphics context is invalid. Check that
 ///                                           graphicsContext was correct when
@@ -608,8 +717,8 @@ T5_EXPORT T5_Result t5SendFrameToGlasses(T5_Glasses glasses, const T5_FrameInfo*
 /// See ::T5_ParamGlasses for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[in]  wand    - ::T5_WandHandle to get value for. Use 0 for non-wand queries.
@@ -641,8 +750,8 @@ T5_EXPORT T5_Result t5GetGlassesIntegerParam(T5_Glasses glasses,
 /// See ::T5_ParamGlasses for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[in]  wand    - ::T5_WandHandle to get value for. Use 0 for non-wand queries.
@@ -674,8 +783,8 @@ T5_EXPORT T5_Result t5GetGlassesFloatParam(T5_Glasses glasses,
 /// See ::T5_ParamGlasses for a list of possible parameters to retrieve.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses       - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[in]  wand          - ::T5_WandHandle to get value for. Use 0 for non-wand queries.
@@ -721,8 +830,8 @@ T5_EXPORT T5_Result t5GetGlassesUtf8Param(T5_Glasses glasses,
 /// always result in a count of 0.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]     glasses - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[out]    buffer  - ::T5_ParamGlasses buffer to receive list of parameters.
@@ -753,8 +862,8 @@ T5_EXPORT T5_Result t5GetChangedGlassesParams(T5_Glasses glasses,
 /// would be, written the the buffer), is returned in \a count.
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]     glasses - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[out]    buffer  - ::T5_WandHandle buffer to receive the list of wand handles.
@@ -782,8 +891,8 @@ T5_EXPORT T5_Result t5ListWandsForGlasses(T5_Glasses glasses,
 /// \ingroup wand_functions
 ///
 /// \par Threading
-/// Exclusivity group 1 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 1 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses - ::T5_Glasses returned by t5CreateGlasses()
 /// \param[in]  config  - ::T5_WandStreamConfig filled by client to detail configuration
@@ -815,8 +924,8 @@ T5_EXPORT T5_Result t5ConfigureWandStreamForGlasses(T5_Glasses glasses,
 /// connected wands), and attempt to read the stream faster.
 ///
 /// \par Threading
-/// Exclusivity group 2 - Functions in this group must not be called simultaneously
-/// from different threads.
+/// Exclusivity group 2 - Functions in this group must not be called concurrently from different
+/// threads.
 ///
 /// \param[in]  glasses   - ::T5_Glasses returned by t5CreateGlasses().
 /// \param[out] event     - If an event is available, it will be written here.
@@ -839,6 +948,9 @@ T5_EXPORT T5_Result t5ReadWandStreamForGlasses(T5_Glasses glasses,
 
 /// \}
 // C_Gls
+
+/// \{
+// C_Glasses_Interface
 
 #ifdef __cplusplus
 }
