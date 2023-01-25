@@ -72,7 +72,6 @@ class Glasses
 
     void set_upside_down_texture(bool is_upside_down);
 
-    void set_upside_down_texture(bool is_upside_down);
     bool update_connection();
     bool update_tracking();
 
@@ -125,7 +124,6 @@ private:
 
     bool _is_upside_down_texture = false;
 
-    bool _is_upside_down_texture = false;
 	WandList _wand_list;
     std::vector<uint8_t> _previous_wand_state;
 
@@ -184,9 +182,6 @@ inline void Glasses::set_upside_down_texture(bool is_upside_down) {
     _is_upside_down_texture = is_upside_down;
 }
 
-inline void Glasses::set_upside_down_texture(bool is_upside_down) {
-    _is_upside_down_texture = is_upside_down;
-}
 struct GlassesEvent {
     enum EType
     {
