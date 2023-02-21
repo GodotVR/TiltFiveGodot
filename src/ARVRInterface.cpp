@@ -192,7 +192,7 @@ void godot_arvr_commit_for_eye(void *data, godot_int eye, godot_rid *render_targ
 			screen_rect.size.x = new_width;
 		}
 
-		//godot::arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
+		godot::arvr_api->godot_arvr_blit(0, render_target, (godot_rect2 *)&screen_rect);
 	}
 	// Tilt Five requires both left and right eye
 	// data at once so the underlying functions just waits until 

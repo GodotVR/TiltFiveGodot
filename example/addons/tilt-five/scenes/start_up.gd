@@ -1,4 +1,4 @@
-extends Node2D
+extends Spatial
 
 enum GlassesEvent {
 	E_ADDED         = 1,
@@ -16,16 +16,11 @@ enum GlassesEvent {
 var connected_glasses = null
 var arvr_interface = null
 
-func on_window_size_change():
-	$TextureRect.rect_size = OS.window_size
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	$TextureRect.texture = $Viewport.get_texture()
-	
-	get_tree().get_root().connect("size_changed", self, "on_window_size_change")
-	on_window_size_change()
-	
+		
 	TiltFiveManager.connect("glasses_event", self, "on_glasses_event")
 	if TiltFiveManager.start_service("com.mygame", "0.1.0"):
 		print("service started")
@@ -45,7 +40,7 @@ func on_glasses_event(glasses_id, event_num):
 			connected_glasses = null
 		GlassesEvent.E_CONNECTED:
 			print("Glasses ", connected_glasses, " connected")
-			$Viewport.arvr = true
+			get_viewport().arvr = true
 		GlassesEvent.E_DISCONNECTED:
 			connected_glasses = null
 		GlassesEvent.E_TRACKING:
