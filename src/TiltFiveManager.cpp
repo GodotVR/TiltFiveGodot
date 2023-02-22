@@ -10,6 +10,7 @@ using godot::register_signal;
 using godot::ARVRServer;
 
 TiltFiveManager::TiltFiveManager() {
+    LOG_CHECK_POINT
 }
 
 TiltFiveManager::~TiltFiveManager() {
@@ -32,7 +33,6 @@ void TiltFiveManager::_init()
 bool TiltFiveManager::start_service(const String application_id, const String application_version)
 {
     if(!_t5_service || _arvr_interface.is_null()) return false;
-    
     return _t5_service->start_service(application_id.ascii().get_data(), application_version.ascii().get_data());
 }
 

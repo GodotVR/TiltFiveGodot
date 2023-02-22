@@ -1,12 +1,13 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://addons/tilt-five/scenes/pointer_controller.gd" type="Script" id=1]
-[ext_resource path="res://addons/tilt-five/scenes/start_up.gd" type="Script" id=2]
+[ext_resource path="res://addons/tilt-five/scenes/Main.gd" type="Script" id=2]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/green.tres" type="Material" id=3]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/red.tres" type="Material" id=4]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/unselected.tres" type="Material" id=5]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/blue.tres" type="Material" id=6]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/selected.tres" type="Material" id=7]
+[ext_resource path="res://addons/tilt-five/scenes/T5Manager.tscn" type="PackedScene" id=8]
 
 [sub_resource type="CapsuleMesh" id=4]
 
@@ -25,6 +26,8 @@ albedo_color = Color( 0.733333, 0, 1, 1 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 2 )
+
+[node name="T5Manager" parent="." instance=ExtResource( 8 )]
 
 [node name="ARVROrigin" type="ARVROrigin" parent="."]
 world_scale = 2.0
@@ -145,5 +148,7 @@ mesh = SubResource( 1 )
 skeleton = NodePath("../..")
 material/0 = ExtResource( 6 )
 
+[connection signal="glasses_available" from="T5Manager" to="." method="_on_T5Manager_glasses_available"]
+[connection signal="glasses_reserved" from="T5Manager" to="." method="_on_T5Manager_glasses_reserved"]
 [connection signal="button_pressed" from="ARVROrigin/ARVRController" to="ARVROrigin/ARVRController" method="_on_ARVRController_button_pressed"]
 [connection signal="button_release" from="ARVROrigin/ARVRController" to="ARVROrigin/ARVRController" method="_on_ARVRController_button_release"]

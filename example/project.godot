@@ -11,12 +11,8 @@ config_version=4
 [application]
 
 config/name="example"
-run/main_scene="res://addons/tilt-five/scenes/t5-scene-root.tscn"
+run/main_scene="res://addons/tilt-five/scenes/t5-scene.tscn"
 config/icon="res://icon.png"
-
-[autoload]
-
-TiltFiveManager="*res://addons/tilt-five/tilt_five_manager.gdns"
 
 [gdnative]
 

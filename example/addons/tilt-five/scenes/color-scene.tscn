@@ -1,13 +1,14 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://addons/tilt-five/scenes/pointer_controller.gd" type="Script" id=1]
-[ext_resource path="res://addons/tilt-five/scenes/start_up.gd" type="Script" id=2]
+[ext_resource path="res://addons/tilt-five/scenes/T5Manager.tscn" type="PackedScene" id=2]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/red.tres" type="Material" id=3]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/green.tres" type="Material" id=4]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/blue.tres" type="Material" id=5]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/selected.tres" type="Material" id=6]
 [ext_resource path="res://addons/tilt-five/scenes/Materials/unselected.tres" type="Material" id=7]
 [ext_resource path="res://addons/tilt-five/scenes/gen-grid.gd" type="Script" id=8]
+[ext_resource path="res://addons/tilt-five/scenes/Main.gd" type="Script" id=9]
 
 [sub_resource type="CapsuleMesh" id=4]
 
@@ -15,96 +16,91 @@
 
 [sub_resource type="CubeMesh" id=1]
 
-[node name="Root" type="Node2D"]
-script = ExtResource( 2 )
+[node name="Main" type="Spatial"]
+script = ExtResource( 9 )
 
-[node name="TextureRect" type="TextureRect" parent="."]
-margin_right = 1216.0
-margin_bottom = 768.0
+[node name="T5Manager" parent="." instance=ExtResource( 2 )]
 
-[node name="Viewport" type="Viewport" parent="."]
-size = Vector2( 1216, 768 )
-msaa = 2
-render_target_update_mode = 3
-
-[node name="ARVROrigin" type="ARVROrigin" parent="Viewport"]
+[node name="ARVROrigin" type="ARVROrigin" parent="."]
 world_scale = 32.0
 
-[node name="ARVRCamera" type="ARVRCamera" parent="Viewport/ARVROrigin"]
+[node name="ARVRCamera" type="ARVRCamera" parent="ARVROrigin"]
 fov = 48.0
 
-[node name="ARVRController" type="ARVRController" parent="Viewport/ARVROrigin"]
+[node name="ARVRController" type="ARVRController" parent="ARVROrigin"]
 script = ExtResource( 1 )
 selected_mat = ExtResource( 6 )
 unselected_mat = ExtResource( 7 )
 
-[node name="Controls" type="Spatial" parent="Viewport/ARVROrigin/ARVRController"]
+[node name="Controls" type="Spatial" parent="ARVROrigin/ARVRController"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0748157, -0.00207818, 0.009782 )
 
-[node name="Trigger" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="Trigger" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.00173648, -0.0147721, 0, 0.00984808, 0.00260472, 0, -0.0415742, -0.0185785 )
 mesh = SubResource( 4 )
 
-[node name="Three" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="Three" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0 )
 mesh = SubResource( 3 )
 
-[node name="One" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="One" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, -0.02, 0, 0.05 )
 mesh = SubResource( 3 )
 
-[node name="Two" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="Two" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0.02, 0, 0.05 )
 mesh = SubResource( 3 )
 
-[node name="T5" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="T5" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( -4.37114e-10, 0, 0.015, 0, 0.01, 0, -0.01, 0, -6.55671e-10, 0, 0, 0.08 )
 mesh = SubResource( 4 )
 
-[node name="X" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="X" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0.15 )
 mesh = SubResource( 3 )
 
-[node name="B" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="B" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0.21 )
 mesh = SubResource( 3 )
 
-[node name="Y" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="Y" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0.03, 0, 0.18 )
 mesh = SubResource( 3 )
 
-[node name="A" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController/Controls"]
+[node name="A" type="MeshInstance" parent="ARVROrigin/ARVRController/Controls"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, -0.03, 0, 0.18 )
 mesh = SubResource( 3 )
 
-[node name="Center Box" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController"]
+[node name="Center Box" type="MeshInstance" parent="ARVROrigin/ARVRController"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0 )
 mesh = SubResource( 1 )
-skeleton = NodePath("../../../..")
+skeleton = NodePath("../../..")
 
-[node name="Pos Z Axis" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController"]
+[node name="Pos Z Axis" type="MeshInstance" parent="ARVROrigin/ARVRController"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0.035 )
 mesh = SubResource( 1 )
-skeleton = NodePath("../../../..")
+skeleton = NodePath("../../..")
 material/0 = ExtResource( 5 )
 
-[node name="Pos Y Axis" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController"]
+[node name="Pos Y Axis" type="MeshInstance" parent="ARVROrigin/ARVRController"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0.035, 0 )
 mesh = SubResource( 1 )
-skeleton = NodePath("../../../..")
+skeleton = NodePath("../../..")
 material/0 = ExtResource( 4 )
 
-[node name="Pos X Axis" type="MeshInstance" parent="Viewport/ARVROrigin/ARVRController"]
+[node name="Pos X Axis" type="MeshInstance" parent="ARVROrigin/ARVRController"]
 transform = Transform( 0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0.035, 0, 0 )
 mesh = SubResource( 1 )
-skeleton = NodePath("../../../..")
+skeleton = NodePath("../../..")
 material/0 = ExtResource( 3 )
 
-[node name="DirectionalLight" type="DirectionalLight" parent="Viewport"]
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 0.944307, -0.112304, 0.309308, -0.23896, 0.412199, 0.879199, -0.226234, -0.904146, 0.362406, 0.221033, 0.823699, 0.486644 )
 
-[node name="Boxes" type="Node" parent="Viewport"]
+[node name="Boxes" type="Node" parent="."]
 script = ExtResource( 8 )
 
-[connection signal="button_pressed" from="Viewport/ARVROrigin/ARVRController" to="Viewport/ARVROrigin/ARVRController" method="_on_ARVRController_button_pressed"]
-[connection signal="button_release" from="Viewport/ARVROrigin/ARVRController" to="Viewport/ARVROrigin/ARVRController" method="_on_ARVRController_button_release"]
+[connection signal="glasses_available" from="T5Manager" to="." method="_on_T5Manager_glasses_available"]
+[connection signal="glasses_reserved" from="T5Manager" to="." method="_on_T5Manager_glasses_reserved"]
+[connection signal="button_pressed" from="ARVROrigin/ARVRController" to="ARVROrigin/ARVRController" method="_on_ARVRController_button_pressed"]
+[connection signal="button_release" from="ARVROrigin/ARVRController" to="ARVROrigin/ARVRController" method="_on_ARVRController_button_release"]

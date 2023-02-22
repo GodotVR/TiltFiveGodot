@@ -18,7 +18,6 @@ using godot::Vector2;
 using godot::Vector3;
 
 using GodotT5Integration::GodotT5Service;
-using T5Integration::ObjectRegistry;
 using GodotT5Integration::GodotT5ObjectRegistry;
 using Eye = GodotT5Integration::Glasses::Eye;
 

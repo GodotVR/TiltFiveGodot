@@ -19,6 +19,7 @@ T5Service::~T5Service() {
 
 bool T5Service::start_service(const char* application_id, const char* application_version) {
 	if(_is_started) return true;
+	LOG_CHECK_POINT
 
 	T5_ClientInfo clientInfo;
 	clientInfo.applicationId = application_id;
