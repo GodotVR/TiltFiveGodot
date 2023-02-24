@@ -49,11 +49,9 @@ If you want to use the extension in your own project follow these steps.
 
 1) Copy `example\addons` to your own projects root directory. 
 
-2) In Godot's project setting add `addons\tilt-five\TiltFiveManager` into the `Autoload` tab.
+2) From `addons\tilt-five\scenes` load the `t5-scene` and run. 
 
-3) From `addons\tilt-five\scenes` load the `t5-scene` or `TiltFiveRig` scenes and run. 
-
-4) From here you should be able to follow documentation for usage of Godot's AR/VR system.
+3) From here you should be able to follow documentation for usage of Godot's AR/VR system.
 
 ## Dependencies
 
