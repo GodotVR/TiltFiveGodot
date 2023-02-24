@@ -10,7 +10,6 @@ using godot::register_signal;
 using godot::ARVRServer;
 
 TiltFiveManager::TiltFiveManager() {
-    LOG_CHECK_POINT
 }
 
 TiltFiveManager::~TiltFiveManager() {
