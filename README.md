@@ -1,5 +1,7 @@
 # TiltFiveGodot
 
+For Godot 4 support see [TiltFiveGodot4](https://github.com/patrickdown/TiltFiveGodot4)
+
 TiltFiveGodot is **GDNative** extension for the Godot engine to connect to the [Tilt Five](https://www.tiltfive.com/) 
 system. It implements Godot's **ARVRinterface** and has GDNative class called TiltFiveManager for scripts to connect 
 glasses and handle connection events.
