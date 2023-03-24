@@ -54,7 +54,7 @@ godot_bindings_path = 'godot-cpp/bin/'
 godot_cpp_library = env.subst('libgodot-cpp.${platform}.${target}.${bits}')
 
 tilt_five_headers_path = "TiltFiveNDK/include/include"
-tilt_five_library_path = "TiltFiveNDK/lib/win64"
+tilt_five_library_path = "TiltFiveNDK/lib/win/x86_64"
 t5_integration_path = "T5Integration"
 tilt_five_library = "TiltFiveNative.dll.if"
 
@@ -120,7 +120,7 @@ sources += Glob('build/T5Integration/*.cpp')
 library = env.SharedLibrary(target=env.subst('$build_product_path/$target_name') , source=sources)
 
 f1 = env.Command(env['addons_path'] + env['target_name'] + lib_ext, library, Copy('$TARGET', '$SOURCE') )
-f2 = env.Command(env['addons_path'] + 'TiltFiveNative' + lib_ext, 'TiltFiveNDK/lib/win64/TiltFiveNative' + lib_ext, Copy('$TARGET', '$SOURCE') )
+f2 = env.Command(env['addons_path'] + 'TiltFiveNative' + lib_ext, 'TiltFiveNDK/lib/win/x86_64/TiltFiveNative' + lib_ext, Copy('$TARGET', '$SOURCE') )
 
 env.Alias('example', [f1, f2])
 
