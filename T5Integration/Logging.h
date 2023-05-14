@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <sstream>
 #include <TiltFiveNative.h>
 
 namespace T5Integration {

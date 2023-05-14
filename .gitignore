@@ -35,6 +35,7 @@ config.log
 *.dll
 
 !TiltFiveNDK/lib/*/*
+!TiltFiveNDK/lib/*/*/*
 
 # Executables
 *.exe

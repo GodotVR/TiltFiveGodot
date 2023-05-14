@@ -2,6 +2,7 @@
 #include <Glasses.h>
 #include <Logging.h>
 #include <Wand.h>
+#include <cmath>
 
 using TaskSystem::task_sleep;
 using TaskSystem::run_in_foreground;

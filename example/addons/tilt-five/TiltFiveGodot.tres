@@ -4,4 +4,6 @@
 singleton = true
 reloadable = false
 entry/Windows.64 = "res://addons/tilt-five/win64/TiltFiveGodot.dll"
+entry/X11.64 = "res://addons/tilt-five/linux/libTiltFiveGodot.so"
 dependency/Windows.64 = [ "res://addons/tilt-five/win64/TiltFiveNative.dll" ]
+dependency/X11.64 = [ "res://addons/tilt-five/linux/libTiltFiveNative.so" ]
