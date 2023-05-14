@@ -39,7 +39,7 @@ if env['platform'] == '':
     env['platform'] = 'windows'
 
 env['target'] =  { 'd' : 'debug', 'debug' : 'debug', 'r' : 'release', 'release' : "release"}[env["target"]]
-env['platform_dir'] = { 'windows' : 'win64', 'linux' : 'linux', 'osx' : 'osx'}[env["platform"]]
+env['platform_dir'] = { 'windows' : 'win', 'linux' : 'linux', 'osx' : 'osx'}[env["platform"]]
 env['build_product_path'] = 'build/bin/'
 env['addons_path']  = 'example/addons/tilt-five/${platform_dir}'
 env['install_path']  = 'build/install'
@@ -51,7 +51,7 @@ godot_bindings_path = 'godot-cpp/bin/'
 godot_cpp_library = env.subst('libgodot-cpp.${platform}.${target}.${bits}')
 
 tilt_five_headers_path = "TiltFiveNDK/include"
-tilt_five_library_path = env.subst("TiltFiveNDK/lib/${platform}/x86_64")
+tilt_five_library_path = env.subst("TiltFiveNDK/lib/${platform_dir}/x86_64")
 t5_integration_path = "T5Integration"
 tilt_five_library = "TiltFiveNative.dll.if"
 
@@ -77,9 +77,10 @@ tilt_five_library = "TiltFiveNative.dll.if"
 
 
 if env['platform'] == "windows":
-    env['build_product_path'] += 'win64/'
+    env['build_product_path'] += 'win/'
     env['lib_ext'] = 'dll'
     env['t5_shared_lib'] = 'TiltFiveNative'
+    env['t5_shared_link_lib'] = 'TiltFiveNative.dll.if'
     env['target_name'] = 'TiltFiveGodot'
     # This makes sure to keep the session environment variables on windows,
     # that way you can run scons in a vs 2017 prompt and it will find all the required tools
@@ -99,6 +100,7 @@ elif env['platform'] in ('x11', 'linux'):
     env['build_product_path'] += 'linux/'
     env['lib_ext'] = 'so'
     env['t5_shared_lib'] = 'libTiltFiveNative'
+    env['t5_shared_link_lib'] = 'libTiltFiveNative'
     env['target_name'] = 'libTiltFiveGodot'
     env.Append(CCFLAGS=['-fPIC'])
     env.Append(CXXFLAGS=['-std=c++20'])
@@ -117,10 +119,10 @@ env.Append(CPPPATH=['src/', t5_integration_path])
 sources = Glob('build/src/*.cpp')
 sources += Glob('build/T5Integration/*.cpp')
 
-library = env.SharedLibrary(target=env.subst('${build_product_path}${target_name}') , source=sources, LIBS=[godot_cpp_library, env['t5_shared_lib']])
+library = env.SharedLibrary(target=env.subst('${build_product_path}${target_name}') , source=sources, LIBS=[godot_cpp_library, env['t5_shared_link_lib']])
 
 f1 = env.Command(env.subst('$addons_path/${target_name}.${lib_ext}'), library, Copy('$TARGET', '$SOURCE') )
-f2 = env.Command(env.subst('$addons_path/${t5_shared_lib}.${lib_ext}'), env.subst('TiltFiveNDK/lib/${platform}/x86_64/${t5_shared_lib}.${lib_ext}'), Copy('$TARGET', '$SOURCE') )
+f2 = env.Command(env.subst('$addons_path/${t5_shared_lib}.${lib_ext}'), env.subst('TiltFiveNDK/lib/${platform_dir}/x86_64/${t5_shared_lib}.${lib_ext}'), Copy('$TARGET', '$SOURCE') )
 
 env.Alias('example', [f1, f2])
 
