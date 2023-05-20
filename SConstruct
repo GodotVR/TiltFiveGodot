@@ -103,7 +103,7 @@ elif env['platform'] in ('x11', 'linux'):
     env['t5_shared_link_lib'] = 'libTiltFiveNative'
     env['target_name'] = 'libTiltFiveGodot'
     env.Append(CCFLAGS=['-fPIC'])
-    env.Append(CXXFLAGS=['-std=c++20'])
+    env.Append(CXXFLAGS=['-std=c++2b'])
     env.Append(RPATH=env.Literal('\\$$ORIGIN' ))
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g3', '-Og'])
@@ -126,10 +126,11 @@ f2 = env.Command(env.subst('$addons_path/${t5_shared_lib}.${lib_ext}'), env.subs
 
 env.Alias('example', [f1, f2])
 
-zip_target1 = env.Zip('build/install/tilt-five.zip', 'example/addons', ZIPROOT='example')
-zip_target2 = env.Zip('build/install/tilt-five.zip', 'example/LICENSE.txt', ZIPROOT='example')
-
-env.Alias('zip', [zip_target1, zip_target2])
+# We do this in CI now
+# zip_target1 = env.Zip('build/install/tilt-five.zip', 'example/addons', ZIPROOT='example')
+# zip_target2 = env.Zip('build/install/tilt-five.zip', 'example/LICENSE.txt', ZIPROOT='example')
+#
+# env.Alias('zip', [zip_target1, zip_target2])
 
 Default(library)
 
