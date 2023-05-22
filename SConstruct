@@ -9,7 +9,7 @@ VariantDir("build/src","src", duplicate=False)
 VariantDir("build/T5Integration","T5Integration", duplicate=False)
 
 # Gets the standard flags CC, CCX, etc.
-env = DefaultEnvironment()
+env = Environment(ENV = os.environ)
 
 #scons_compiledb.enable_with_cmdline(env)
 
@@ -27,16 +27,18 @@ bits = 64
 # Updates the environment with the option variables.
 opts.Update(env)
 
-# Process some arguments
-if env['use_llvm']:
-    env['CC'] = 'clang'
-    env['CXX'] = 'clang++'
-
 if env['p'] != '':
     env['platform'] = env['p']
 
 if env['platform'] == '':
     env['platform'] = 'windows'
+
+if env['use_llvm']:
+    env['CC'] = 'clang'
+    env['CXX'] = 'clang++'
+elif env['platform'] == 'linux':
+    env['CC'] = 'gcc-11'
+    env['CXX'] = 'g++-11'
 
 env['target'] =  { 'd' : 'debug', 'debug' : 'debug', 'r' : 'release', 'release' : "release"}[env["target"]]
 env['platform_dir'] = { 'windows' : 'win', 'linux' : 'linux', 'osx' : 'osx'}[env["platform"]]
@@ -82,6 +84,7 @@ if env['platform'] == "windows":
     env['t5_shared_lib'] = 'TiltFiveNative'
     env['t5_shared_link_lib'] = 'TiltFiveNative.dll.if'
     env['target_name'] = 'TiltFiveGodot'
+
     # This makes sure to keep the session environment variables on windows,
     # that way you can run scons in a vs 2017 prompt and it will find all the required tools
     env.Append(ENV=os.environ)
@@ -103,7 +106,7 @@ elif env['platform'] in ('x11', 'linux'):
     env['t5_shared_link_lib'] = 'libTiltFiveNative'
     env['target_name'] = 'libTiltFiveGodot'
     env.Append(CCFLAGS=['-fPIC'])
-    env.Append(CXXFLAGS=['-std=c++2b'])
+    env.Append(CXXFLAGS=['-std=c++20'])
     env.Append(RPATH=env.Literal('\\$$ORIGIN' ))
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g3', '-Og'])

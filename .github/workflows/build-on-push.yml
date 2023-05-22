@@ -22,16 +22,16 @@ jobs:
             platform: linux
             artifact-name: gdtiltfive.linux
             artifact-path: |
-              build/bin/libTiltFiveGodot.*
-              extension/TiltFiveNDK/lib/linux/TiltFiveNative.so
+              build/bin/linux/libTiltFiveGodot.*
+              TiltFiveNDK/lib/linux/x86_64/TiltFiveNative.so
 
           - name: 🏁 Windows (x86_64, MSVC)
             os: windows-2019
             platform: windows
             artifact-name: gdtiltfive.windows
             artifact-path: |
-              build/bin/TiltFiveGodot.dll
-              extension/TiltFiveNDK/lib/win64/TiltFiveNative.dll
+              build/bin/windows/TiltFiveGodot.dll
+              TiltFiveNDK/lib/win/x86_64/TiltFiveNative.dll
 
           #- name: 🍎 macOS (universal)
           #  os: macos-11
@@ -71,7 +71,7 @@ jobs:
         if: ${{ matrix.platform == 'linux' }}
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -qqq build-essential pkg-config
+          sudo apt-get install -qqq build-essential pkg-config gcc-11 g++-11
 
       - name: Install scons
         run: |
@@ -85,7 +85,7 @@ jobs:
 
       - name: Build release build
         run: |
-          scons platform=${{ matrix.platform }} target=release custom_api_file=patches/extension_api.json ${{ matrix.flags }}
+          scons platform=${{ matrix.platform }} target=release ${{ matrix.flags }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -120,11 +120,11 @@ jobs:
           cp source/CONTRIBUTORS.md plugin/addons/tiltfive
           cp source/CHANGES.md plugin/addons/tiltfive
           mkdir plugin/addons/tiltfive/linux
-          cp gdtiltfive.linux/*.so plugin/addons/tiltfive/linux/
-          cp gdtiltfive.linux/extension/TiltFiveNDK/lib/linux/TiltFiveNative.so plugin/addons/tiltfive/linux/
+          cp gdtiltfive.linux/build/bin/linux/*.so plugin/addons/tiltfive/linux/
+          cp gdtiltfive.linux/TiltFiveNDK/lib/linux/TiltFiveNative.so plugin/addons/tiltfive/linux/
           mkdir plugin/addons/tiltfive/windows
-          cp gdtiltfive.windows/build/bin/*.dll plugin/addons/tiltfive/windows/
-          cp gdtiltfive.windows/extension/TiltFiveNDK/lib/win64/*.dll plugin/addons/tiltfive/windows/
+          cp gdtiltfive.windows/build/bin/windows/*.dll plugin/addons/tiltfive/windows/
+          cp gdtiltfive.windowsTiltFiveNDK/lib/win/x86_64/*.dll plugin/addons/tiltfive/windows/
           # cp gdtiltfive.android/*.so plugin/addons/tiltfive/android/
           # cp gdtiltfive.ios/*.dylib plugin/addons/tiltfive/ios/
           # cp -R gdtiltfive.macos/libgdtiltfive.macos.* plugin/addons/tiltfive/macos/
